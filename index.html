@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HM Barcode">
+<meta name="theme-color" content="#1d4ed8">
+<title>HM Barcode Checker</title>
+<style>
+:root{--blue:#1d4ed8;--blue-light:#3b82f6;--blue-dark:#1e40af;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--safe-b:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--gray-100);color:var(--gray-800);min-height:100vh;min-height:100dvh;-webkit-text-size-adjust:100%;overflow-x:hidden}
+.page{display:none;min-height:100vh;min-height:100dvh;padding-bottom:calc(90px + var(--safe-b))}.page.active{display:block}
+.app-header{background:linear-gradient(180deg,var(--blue-dark),var(--blue));color:#fff;padding:52px 16px 16px;position:relative}
+.app-header h1{font-size:18px;font-weight:800;letter-spacing:-0.3px}.app-header .sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px}
+.pass-badge{position:absolute;right:16px;top:50px;padding:8px 16px;border-radius:12px;font-weight:900;font-size:14px}
+.pass-badge.ok{background:#4ade80;color:#14532d}.pass-badge.ng{background:#f87171;color:#7f1d1d}
+.section-title{display:flex;align-items:center;gap:8px;margin:12px 0 8px;padding:0 4px}
+.section-title span:first-child{font-size:16px}.section-title span:last-child{font-size:13px;font-weight:700;color:var(--gray-700)}
+.card{background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;margin-bottom:12px}
+.card-body{padding:12px;font-size:11px;font-family:'SF Mono',Menlo,monospace;line-height:1.8;word-break:break-all;white-space:pre-line}
+.gs{color:red;font-weight:bold}.rs{color:green;font-weight:bold}.eot{color:blue;font-weight:bold}
+.result-table{width:100%;border-collapse:collapse;font-size:11px}
+.result-table thead th{background:var(--blue);color:#fff;padding:8px 6px;font-weight:600;text-align:left}
+.result-table thead th:nth-child(2){text-align:center;width:44px}
+.result-table .group-row td{background:#eff6ff;padding:6px 12px;font-weight:700;color:var(--blue);font-size:11px}
+.result-table tbody td{padding:8px 6px;border-bottom:1px solid var(--gray-200);vertical-align:middle}
+.result-table tbody td:first-child{background:var(--gray-50);font-weight:600;color:var(--gray-500);white-space:nowrap;text-align:center;border-right:1px solid var(--gray-200);width:28%}
+.result-table tbody td:nth-child(2){text-align:center;border-right:1px solid var(--gray-200);width:44px}
+.result-table tbody td:last-child{font-family:'SF Mono',Menlo,monospace;word-break:break-all}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-weight:900;font-size:10px;letter-spacing:0.5px}
+.badge.ok{background:var(--blue);color:#fff}.badge.ng{background:var(--red);color:#fff}.badge.lg{padding:4px 12px;font-size:12px}
+.badge-dash{color:var(--gray-300);font-weight:bold}.cond{color:var(--gray-300);font-style:italic;font-size:10px}
+.tab-bar{display:flex;gap:8px;overflow-x:auto;padding:0 4px 8px;-webkit-overflow-scrolling:touch}.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:8px 16px;border-radius:999px;border:none;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--gray-500);box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+.tab-btn.active{background:var(--amber);color:#92400e;box-shadow:0 2px 8px rgba(245,158,11,0.3)}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--gray-200);padding:8px 12px;padding-bottom:calc(8px + var(--safe-b));display:flex;gap:6px}
+.bottom-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border-radius:12px;border:none;cursor:pointer;font-weight:700;font-size:10px;transition:all 0.15s;position:relative}
+.bottom-btn svg{width:20px;height:20px;margin-bottom:2px}
+.bottom-btn.default{background:var(--gray-100);color:var(--gray-600)}.bottom-btn.primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(29,78,216,0.3)}.bottom-btn.danger{background:#fef2f2;color:var(--red)}
+.bottom-btn:active{transform:scale(0.95)}
+.bottom-btn .notif{position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.empty-state{text-align:center;padding:60px 20px}.empty-state .icon{font-size:56px;margin-bottom:16px}.empty-state .text{color:var(--gray-400);font-size:13px;line-height:1.6;white-space:pre-line}
+.hist-item{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:8px}
+.hist-item .meta{flex:1;min-width:0}.hist-item .date{font-size:11px;color:var(--gray-400);margin-bottom:2px}.hist-item .barcode{font-size:11px;font-family:monospace;color:var(--gray-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-item .view-btn{flex-shrink:0;padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer}.hist-item .view-btn:active{background:var(--blue-dark)}
+.lang-option{width:100%;text-align:left;padding:14px 18px;border:none;background:none;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.lang-option:active{background:#eff6ff}.lang-option+.lang-option{border-top:1px solid var(--gray-100)}.lang-option.sel{color:var(--blue)}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.action-card{padding:20px 14px;border:none;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:13px;transition:all 0.15s}
+.action-card:active{transform:scale(0.97)}.action-card svg{width:28px;height:28px}.action-card .desc{font-size:10px;font-weight:500;opacity:0.7;margin-top:-2px}
+.action-card.cam-card{background:linear-gradient(135deg,var(--blue),var(--blue-light));color:#fff;box-shadow:0 4px 16px rgba(59,130,246,0.3)}
+.action-card.gallery-card{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0}.divider .line{flex:1;height:1px;background:var(--gray-300)}.divider .or{font-size:11px;color:var(--gray-400);font-weight:600}
+.text-input{width:100%;height:120px;border:1px solid var(--gray-200);border-radius:12px;padding:12px;font-size:13px;font-family:'SF Mono',Menlo,monospace;resize:none;outline:none;-webkit-appearance:none}
+.text-input:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,0.15)}
+.sample-btn{width:100%;text-align:left;padding:12px 14px;background:#fff;border:none;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);font-size:11px;font-family:monospace;color:var(--gray-600);cursor:pointer;margin-bottom:8px}.sample-btn:active{background:var(--gray-50)}
+.img-preview-area{margin-bottom:16px;display:none}
+.img-preview-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);position:relative}
+.img-preview-card img{width:100%;max-height:280px;object-fit:contain;display:block;background:repeating-conic-gradient(var(--gray-200) 0% 25%,#fff 0% 50%) 50%/16px 16px}
+.img-preview-status{padding:12px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--gray-100)}
+.img-preview-status .spinner{width:18px;height:18px;border:3px solid var(--gray-200);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.img-preview-status .status-text{font-size:12px;font-weight:600;line-height:1.4}
+.img-preview-status .status-text.scanning{color:var(--blue)}.img-preview-status .status-text.found{color:var(--green)}.img-preview-status .status-text.notfound{color:var(--red)}
+.img-preview-close{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+.scanner-overlay{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column}
+.scanner-overlay video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner-overlay canvas{display:none}
+.scan-ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.scan-dim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.25) 35%,rgba(0,0,0,0.25) 65%,rgba(0,0,0,0.6) 100%)}
+.scan-frame{position:relative;width:250px;height:250px}.scan-frame .border{position:absolute;inset:0;border:2px solid rgba(255,255,255,0.25);border-radius:16px}
+.scan-frame .corner{position:absolute;width:36px;height:36px}
+.scan-frame .corner.tl{top:0;left:0;border-top:4px solid #60a5fa;border-left:4px solid #60a5fa;border-top-left-radius:14px}
+.scan-frame .corner.tr{top:0;right:0;border-top:4px solid #60a5fa;border-right:4px solid #60a5fa;border-top-right-radius:14px}
+.scan-frame .corner.bl{bottom:0;left:0;border-bottom:4px solid #60a5fa;border-left:4px solid #60a5fa;border-bottom-left-radius:14px}
+.scan-frame .corner.br{bottom:0;right:0;border-bottom:4px solid #60a5fa;border-right:4px solid #60a5fa;border-bottom-right-radius:14px}
+.scan-line{position:absolute;left:12px;right:12px;height:2px;top:12px;background:linear-gradient(90deg,transparent,#60a5fa,transparent);border-radius:2px;animation:scanMove 2s ease-in-out infinite}
+@keyframes scanMove{0%,100%{top:12px;opacity:0.3}50%{top:calc(100% - 14px);opacity:1}}
+.scan-status{position:absolute;top:0;left:0;right:0;padding:52px 20px 0}
+.scan-status .rec{display:flex;align-items:center;gap:8px}.scan-status .dot{width:10px;height:10px;background:#ef4444;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.scan-status .rec span{color:#fff;font-size:13px;font-weight:600}
+.scan-guide{position:absolute;bottom:0;left:0;right:0;padding-bottom:20px;text-align:center}
+.scan-guide p{color:#fff;font-size:13px;font-weight:500;margin-bottom:4px}.scan-guide .sub{color:rgba(255,255,255,0.5);font-size:11px}
+.scan-guide .warn{color:#fbbf24;font-size:11px;margin-top:8px;padding:0 24px}
+.scan-bottom{background:rgba(0,0,0,0.9);padding:12px 20px;padding-bottom:calc(12px + var(--safe-b))}
+.scan-stop{width:100%;padding:14px;border:none;border-radius:16px;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;font-size:15px;font-weight:700}.scan-stop:active{background:rgba(255,255,255,0.2)}
+.scan-error{padding:0 24px}.scan-error .err-box{background:rgba(239,68,68,0.15);backdrop-filter:blur(12px);border-radius:16px;padding:16px}
+.scan-error .err-msg{color:#fca5a5;font-size:13px;font-weight:600;margin-bottom:12px}
+.scan-error .err-btns{display:flex;gap:8px}.scan-error .err-btn{flex:1;padding:10px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
+.flash{position:fixed;inset:0;z-index:200;background:rgba(74,222,128,0.2);pointer-events:none;animation:fadeOut 0.6s ease-out forwards}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.content{padding:16px 16px 0}#galleryInput{display:none}
+</style>
+</head>
+<body>
+<div id="page-main" class="page active">
+  <div class="app-header"><h1 id="mainTitle">HM Barcode Checker</h1><div class="sub" id="mainSub"></div><div id="passBadge" class="pass-badge" style="display:none"></div></div>
+  <div class="content">
+    <div id="emptyState" class="empty-state"><div class="icon">📷</div><div class="text" id="emptyText"></div></div>
+    <div id="barcodeSection" style="display:none"><div class="section-title"><span>📋</span><span id="secBarcode"></span></div><div class="card"><div class="card-body" id="fullViewData"></div></div></div>
+    <div id="tabSection" style="display:none"><div class="tab-bar" id="tabBar"></div></div>
+    <div id="resultSection" style="display:none"><div class="section-title"><span>📊</span><span id="secResult"></span></div><div class="card"><table class="result-table" id="resultTable"></table></div></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="bottom-btn default" onclick="showPage('language')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span id="navLang"></span></button>
+    <button class="bottom-btn default" onclick="showPage('history')" id="histBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="navHist"></span></button>
+    <button class="bottom-btn default" onclick="showPage('input')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="8" y1="16" x2="16" y2="16"/></svg><span id="navManual"></span></button>
+    <button class="bottom-btn primary" onclick="startScan()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span id="navScan"></span></button>
+  </div>
+</div>
+
+<div id="page-input" class="page">
+  <div class="app-header"><h1 id="inputTitle"></h1></div>
+  <div class="content">
+    <div class="action-grid">
+      <button class="action-card cam-card" onclick="startScan()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span id="camCardLabel"></span><span class="desc" id="camCardDesc"></span></button>
+      <button class="action-card gallery-card" onclick="openGallery()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span id="galCardLabel"></span><span class="desc" id="galCardDesc"></span></button>
+    </div>
+    <input type="file" id="galleryInput" accept="image/*">
+    <div class="img-preview-area" id="imgPreviewArea">
+      <div class="img-preview-card">
+        <button class="img-preview-close" onclick="closeImgPreview()">&times;</button>
+        <img id="imgPreviewImg" src="" alt="">
+        <div class="img-preview-status" id="imgPreviewStatus">
+          <div class="spinner" id="imgSpinner"></div>
+          <span class="status-text scanning" id="imgStatusText"></span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"><div class="line"></div><div class="or" id="orText"></div><div class="line"></div></div>
+    <div class="card" style="padding:14px">
+      <textarea class="text-input" id="manualInput"></textarea>
+      <div style="margin-top:8px;font-size:11px;color:var(--gray-400)" id="inputHint"></div>
+    </div>
+    <div style="margin-top:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:8px;padding:0 4px" id="sampleLabel"></div>
+      <button class="sample-btn" onclick="setSample(1)" id="sample1"></button>
+      <button class="sample-btn" onclick="setSample(2)" id="sample2"></button>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <button class="bottom-btn default" onclick="showPage('main')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span id="inputCancel"></span></button>
+    <button class="bottom-btn primary" onclick="analyzeManual()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg><span id="inputAnalyze"></span></button>
+  </div>
+</div>
+
+<div id="page-history" class="page">
+  <div class="app-header"><h1 id="histPageTitle"></h1></div>
+  <div class="content" id="historyContent"></div>
+  <div class="bottom-bar">
+    <button class="bottom-btn danger" onclick="clearHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span id="histClear"></span></button>
+    <button class="bottom-btn default" onclick="showPage('main')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span id="histClose"></span></button>
+  </div>
+</div>
+
+<div id="page-language" class="page">
+  <div class="app-header"><h1 id="langPageTitle"></h1></div>
+  <div class="content"><div class="card">
+    <button class="lang-option" onclick="setLang('ko')">한국어 <span id="chkKo" style="display:none">✓</span></button>
+    <button class="lang-option" onclick="setLang('en')">English <span id="chkEn" style="display:none">✓</span></button>
+  </div></div>
+  <div class="bottom-bar"><button class="bottom-btn default" onclick="showPage('main')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span id="langClose"></span></button></div>
+</div>
+
+<div id="scannerOverlay" class="scanner-overlay" style="display:none">
+  <video id="scanVideo" playsinline muted autoplay></video><canvas id="scanCanvas"></canvas>
+  <div class="scan-ui"><div class="scan-dim"></div><div class="scan-frame"><div class="border"></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div><div class="scan-line" id="scanLine"></div></div></div>
+  <div class="scan-status"><div class="rec" id="scanRec" style="display:none"><div class="dot"></div><span id="scanningText"></span></div><div id="scanLoading" style="color:rgba(255,255,255,0.5);font-size:13px">Loading...</div></div>
+  <div class="scan-guide"><p id="scanGuideText"></p><div class="sub" id="scanFmtText"></div><div class="warn" id="scanWarn" style="display:none"></div><div class="scan-error" id="scanError" style="display:none"><div class="err-box"><div class="err-msg" id="scanErrMsg"></div><div class="err-btns"><button class="err-btn" onclick="retryCamera()" id="retryBtn"></button><button class="err-btn" onclick="closeScannerToManual()" id="manualBtn"></button></div></div></div></div>
+  <div class="scan-bottom"><button class="scan-stop" onclick="closeScanner()" id="stopScanBtn"></button></div>
+</div>
+
+<div id="flashEffect" class="flash" style="display:none"></div>
+<canvas id="imgScanCanvas" style="display:none"></canvas>
+
+<script>
+function DataAnalyzer(){
+  var D=[],DL=[],RD=[],cnt=0,sel=0;
+  this.setBarcodeData=function(s){D=[];DL=[];RD=[];cnt=0;sel=0;af(s);sd();};
+  this.setSelectIndex=function(i){sel=i;};this.getSelectedIndex=function(){return sel;};
+  this.getFullViewData=function(){return ca();};this.getCount=function(){return cnt;};
+  this.getCheckResult=function(){return dc();};this.getResultData=function(){return RD;};
+  function af(s){D=[];for(var i=0;i<s.length;i++)if(s.charCodeAt(i)!==32)D.push(s.charCodeAt(i));}
+  function sd(){var r=[];D.forEach(function(v){r.push(v);if(v===35){DL.push(r);r=[];cnt++;}});if(r.length>0){DL.push(r);cnt++;}}
+  function lp(n,w){n=n+'';return n.length>=w?n:new Array(w-n.length+1).join('0')+n;}
+  function cc(s){if(s===29)return'<span class="gs"><sup>G</sup><sub>S</sub></span>';if(s===30)return'<span class="rs"><sup>R</sup><sub>S</sub></span>';if(s===4)return'<span class="eot"><sup>E</sup>O<sub>T</sub></span>';if(s===35)return'#<br>';if((s>=0&&s<=32)||s===127)return'&lt;0x'+lp(s.toString(16).toUpperCase(),2)+'&gt;';return String.fromCharCode(s);}
+  function ca(){var r='';DL.forEach(function(row,i){if(i===sel)r+='<span style="background:#fef08a;font-weight:bold">';row.forEach(function(v){r+=cc(v);});if(i===sel)r+='</span>';});return r;}
+  function ad(a){var r='';if(typeof a==='number')return cc(a);if(a)a.forEach(function(v){r+=cc(v);});return r;}
+  function hc(a,c){return a.some(function(v){return v===c;});}
+  function vd(a){var s='';a.forEach(function(v){s+=String.fromCharCode(v);});if(!/[0-9]{2}[0-1]{1}[0-9]{1}[0-9]{2}/.test(s))return false;var ld=[31,28,31,30,31,30,31,31,30,31,30,31],y=Number('20'+s.substr(0,2)),m=Number(s.substr(2,2)),d=Number(s.substr(4,2));if(m>12||m===0||d===0)return false;if(y%4===0&&(y%100!==0||y%400===0)&&m===2)return d<=29;return d<=ld[m-1];}
+  function ba(a){if(!a||(Array.isArray(a)&&a.length===0))return false;var c=function(v){return v<47||(v>57&&v<65)||(v>90&&v<97)||v>122;};if(typeof a==='number')return c(a);for(var i=0;i<a.length;i++)if(c(a[i]))return true;return false;}
+  function sg(a){var r=[],row=[];a.forEach(function(v){if(v===29){r.push(row.slice(0));row=[];}else row.push(v);});return r;}
+  function fb(a){var c=-1;a.some(function(v,i){if(v===29){c=i;return true;}return false;});return a.slice(0,c);}
+  function lb(a){var c=-1;for(var x=a.length;x>0;x--)if(a[x]===29){c=x+1;break;}return a.slice(c);}
+  function dd(t,ok,d,ri){if(sel===ri){if(t!=='00'&&t!=='50')if(ba(d))ok=false;RD.push([t,ok?'OK':'NG',d!=null?ad(d):null]);}}
+  function dc(){var result=true;RD=[];DL.forEach(function(rd,ri){var e00=0,e10=0,e11=0,e12=0,e13=0,e20=0,e21=0,e22=0,e23=0,e30=0,e31=0,e40=0,e50=0;if(rd.length>=7){if(rd[0]===91&&rd[1]===41&&rd[2]===62&&rd[3]===30&&rd[4]===48&&rd[5]===54&&rd[6]===29){e00=1;dd('00',true,rd.slice(0,6),ri);}else if(rd[0]===91){var c=-1;rd.some(function(v,i){if(v===29){c=i;return true;}return false;});if(c>0){e00=1;dd('00',false,rd.slice(0,c),ri);}}}else result=false;if(rd[rd.length-1]===35||rd[rd.length-1]===4){e50=1;if(rd[rd.length-4]===29&&rd[rd.length-3]===30&&rd[rd.length-2]===4&&rd[rd.length-1]===35)dd('50',true,rd.slice(rd.length-3,rd.length-1),ri);else if(rd[rd.length-3]===29&&rd[rd.length-2]===30&&rd[rd.length-1]===4)dd('50',true,rd.slice(rd.length-2),ri);else{result=false;var c2=-1;for(var x=rd.length;x>0;x--)if(rd[x]===29){c2=x+1;break;}dd('50',false,rd.slice(c2),ri);}}sg(rd).forEach(function(pd){if(pd[0]===86){e10=1;dd('10',pd.length===5,pd.slice(1),ri);if(pd.length!==5)result=false;}else if(pd[0]===80){e11=1;if(pd.length>10&&pd.length<17){if(!hc(pd,45))dd('11',true,pd.slice(1),ri);else dd('11',false,pd.slice(1),ri);}else{result=false;dd('11',false,pd.slice(1),ri);}}else if(pd[0]===83){e12=1;if(pd.length>0&&pd.length<10)dd('12',true,pd.slice(1),ri);else{result=false;dd('12',false,pd.slice(1),ri);}}else if(pd[0]===69){e13=1;if((pd.length>8&&pd.length<11)||pd.length===1)dd('13',true,pd.slice(1),ri);else{result=false;dd('13',false,pd.slice(1),ri);}}else if(pd[0]===84){if(pd.length>6){e20=1;if(vd(pd.slice(1,7)))dd('20',true,pd.slice(1,7),ri);else{result=false;dd('20',false,pd.slice(1,7),ri);}}if(pd.length>7){e21=1;if(pd.length>10)dd('21',true,pd.slice(7,11),ri);else{result=false;dd('21',false,pd.slice(7),ri);}}if(pd.length>11){e22=1;if(pd[11]===64||pd[11]===65)dd('22',true,pd[11],ri);else{result=false;dd('22',false,pd[11],ri);}}if(pd.length>12){e23=1;dd('23',true,pd.slice(12),ri);}}else if(pd[0]>48&&pd[0]<58){e30=1;if(pd.length>1&&pd.length<42)dd('30',true,pd.slice(2),ri);else{result=false;dd('30',false,pd.slice(2),ri);}}else if(pd[0]===77){e31=1;if(pd.length===1)dd('31',true,pd[1],ri);else if(pd.length===2){if(pd[1]===89||pd[1]===78)dd('31',true,pd[1],ri);else{result=false;dd('31',false,pd[1],ri);}}else{result=false;dd('31',false,pd[1],ri);}}else if(pd[0]===67){e40=1;if(pd.length>0&&pd.length<52)dd('40',true,pd.slice(1),ri);else{result=false;dd('40',false,pd.slice(1),ri);}}});if(!e00){result=false;dd('00',false,fb(rd),ri);}if(!e10){result=false;dd('10',false,null,ri);}if(!e11){result=false;dd('11',false,null,ri);}if(!e12)dd('12',true,null,ri);if(!e20){result=false;dd('20',false,null,ri);}if(!e21){result=false;dd('21',false,null,ri);}if(!e22){result=false;dd('22',false,null,ri);}if(!e23){result=false;dd('23',false,null,ri);}if(!e50){result=false;dd('50',false,lb(rd),ri);}});return result;}
+}
+
+var LANG={ko:{appTitle:'HM Barcode Checker',standard:'H/KMC부품 2D 바코드 표준',scan:'스캔',history:'이력',lang:'언어',manual:'수동입력',barcodeContent:'바코드내용',item:'구분',result:'결과',data:'Data',header:'Header',spec:'사양정보',supplier:'업체코드',partNo:'부품번호',seqCode:'서열코드',eoNo:'EO번호',trace:'추적정보',prodDate:'생산일자',part4m:'부품4M',aOrAt:'A or @',traceNo:'추적번호(7~)',additional:'부가정보',special:'특이정보',initial:'초도품구분',etc:'기타',supplierArea:'업체영역',trailer:'Trailer',close:'닫기',histTitle:'바코드이력',view:'보기',noData:'등록된 데이터가 없습니다',clearAll:'전체삭제',selectLang:'언어 선택',inputTitle:'바코드 입력',analyze:'분석',cancel:'취소',conditional:'해당시 필수',placeholder:'바코드 데이터를 직접 입력하세요...',hint:'※ 특수문자: GS=\\x1d, RS=\\x1e, EOT=\\x04',sampleLabel:'샘플 데이터:',sample1:'샘플 바코드 1 (단일)',sample2:'샘플 바코드 2 (다중)',scanning:'스캔 중...',scanGuide:'바코드를 사각형 안에 맞춰주세요',formatInfo:'DataMatrix / QR / Code128 지원',stopScan:'스캔 중지',cameraError:'카메라 접근 실패',cameraPermission:'카메라 권한을 허용해주세요',retryCamera:'카메라 재시도',useManual:'수동입력',noBarcodeAPI:'⚠ BarcodeDetector 미지원 브라우저입니다. Chrome을 사용하거나 수동입력을 이용해주세요.',deleteConfirm:'전체 이력을 삭제하시겠습니까?',emptyGuide:'아래 스캔 버튼을 눌러\n바코드를 분석하세요',camCard:'실시간 스캔',camCardDesc:'카메라로 바코드 인식',galCard:'사진 업로드',galCardDesc:'갤러리에서 불러오기',orManual:'또는 직접 입력',imgScanning:'바코드 인식 중...',imgFound:'✓ 바코드 발견! 분석 중...',imgNotFound:'바코드를 찾을 수 없습니다',imgNotSupported:'이 브라우저에서 이미지 바코드 인식이 지원되지 않습니다',imgTip:'사진이 선명하고 바코드가 잘 보이는지 확인해주세요'},en:{appTitle:'HM Barcode Checker',standard:'H/KMC Part 2D Barcode Standard',scan:'Scan',history:'History',lang:'Language',manual:'Manual',barcodeContent:'Barcode Content',item:'Item',result:'Result',data:'Data',header:'Header',spec:'Spec Info',supplier:'Supplier Code',partNo:'Part Number',seqCode:'Seq Code',eoNo:'EO Number',trace:'Traceability',prodDate:'Production Date',part4m:'Part 4M',aOrAt:'A or @',traceNo:'Trace No.(7~)',additional:'Additional',special:'Special Code',initial:'Initial Sample',etc:'ETC',supplierArea:'Supplier Area',trailer:'Trailer',close:'Close',histTitle:'Barcode History',view:'View',noData:'No data registered',clearAll:'Clear All',selectLang:'Select Language',inputTitle:'Barcode Input',analyze:'Analyze',cancel:'Cancel',conditional:'Conditional',placeholder:'Enter barcode data manually...',hint:'※ Special: GS=\\x1d, RS=\\x1e, EOT=\\x04',sampleLabel:'Sample Data:',sample1:'Sample Barcode 1 (Single)',sample2:'Sample Barcode 2 (Multi)',scanning:'Scanning...',scanGuide:'Align barcode within the frame',formatInfo:'DataMatrix / QR / Code128 supported',stopScan:'Stop Scan',cameraError:'Camera access failed',cameraPermission:'Please allow camera access',retryCamera:'Retry Camera',useManual:'Manual Input',noBarcodeAPI:'⚠ BarcodeDetector not supported. Use Chrome or manual input.',deleteConfirm:'Delete all history?',emptyGuide:'Press Scan below\nto analyze a barcode',camCard:'Live Scan',camCardDesc:'Scan with camera',galCard:'Upload Photo',galCardDesc:'Choose from gallery',orManual:'or enter manually',imgScanning:'Detecting barcode...',imgFound:'✓ Barcode found! Analyzing...',imgNotFound:'No barcode detected',imgNotSupported:'Image barcode detection not supported',imgTip:'Make sure photo is clear and barcode is visible'}};
+
+var currentLang='ko',analyzer=new DataAnalyzer(),historyList=[],cameraStream=null,scanAnimFrame=null,barcodeDetector=null;
+
+function showPage(n){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});document.getElementById('page-'+n).classList.add('active');if(n==='history')renderHistory();if(n==='input')closeImgPreview();window.scrollTo(0,0);}
+
+function setLang(lang){currentLang=lang;var L=LANG[lang];
+var m={mainTitle:'appTitle',mainSub:'standard',emptyText:'emptyGuide',secBarcode:'barcodeContent',secResult:'standard',navLang:'lang',navHist:'history',navManual:'manual',navScan:'scan',inputTitle:'inputTitle',camCardLabel:'camCard',camCardDesc:'camCardDesc',galCardLabel:'galCard',galCardDesc:'galCardDesc',orText:'orManual',inputHint:'hint',sampleLabel:'sampleLabel',sample1:'sample1',sample2:'sample2',inputCancel:'cancel',inputAnalyze:'analyze',histPageTitle:'histTitle',histClear:'clearAll',histClose:'close',langPageTitle:'selectLang',langClose:'close',scanningText:'scanning',scanGuideText:'scanGuide',scanFmtText:'formatInfo',stopScanBtn:'stopScan',retryBtn:'retryCamera',manualBtn:'useManual'};
+for(var id in m)document.getElementById(id).textContent=L[m[id]];
+document.getElementById('manualInput').placeholder=L.placeholder;
+document.getElementById('chkKo').style.display=lang==='ko'?'':'none';document.getElementById('chkEn').style.display=lang==='en'?'':'none';
+document.querySelectorAll('.lang-option').forEach(function(el){el.classList.remove('sel');});document.querySelector('.lang-option:'+(lang==='ko'?'first-child':'last-child')).classList.add('sel');
+showPage('main');}
+
+function pad(n){return n<10?'0'+n:''+n;}
+function escHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+function processBarcode(data){var L=LANG[currentLang];analyzer.setBarcodeData(data);document.getElementById('emptyState').style.display='none';document.getElementById('barcodeSection').style.display='';document.getElementById('fullViewData').innerHTML=analyzer.getFullViewData();var tc=analyzer.getCount();if(tc>1){document.getElementById('tabSection').style.display='';var th='';for(var i=0;i<tc;i++){var lb=i===0?'Assy':'Sub'+String(i).padStart(2,'0');th+='<button class="tab-btn'+(i===0?' active':'')+'" onclick="switchTab('+i+')">'+lb+'</button>';}document.getElementById('tabBar').innerHTML=th;}else document.getElementById('tabSection').style.display='none';var ok=analyzer.getCheckResult(),RD=analyzer.getResultData(),bd=document.getElementById('passBadge');bd.style.display='';bd.className='pass-badge '+(ok?'ok':'ng');bd.textContent=ok?'PASS':'FAIL';renderRT(RD,L);var now=new Date(),ds=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());historyList.unshift({date:ds,barcode:data,okng:ok?'OK':'NG'});if(historyList.length>50)historyList=historyList.slice(0,50);updateHB();var fl=document.getElementById('flashEffect');fl.style.display='';setTimeout(function(){fl.style.display='none';},600);showPage('main');}
+
+function switchTab(idx){var L=LANG[currentLang];analyzer.setSelectIndex(idx);document.getElementById('fullViewData').innerHTML=analyzer.getFullViewData();var ok=analyzer.getCheckResult(),bd=document.getElementById('passBadge');bd.className='pass-badge '+(ok?'ok':'ng');bd.textContent=ok?'PASS':'FAIL';renderRT(analyzer.getResultData(),L);document.querySelectorAll('.tab-btn').forEach(function(b,i){b.className='tab-btn'+(i===idx?' active':'');});}
+
+function renderRT(RD,L){var f={};RD.forEach(function(r){f[r[0]]=true;});function gR(c){var rw=null;RD.forEach(function(r){if(r[0]===c)rw=r;});return rw?{r:rw[1],d:rw[2]}:{r:null,d:null};}function bH(r){if(!r)return'<span class="badge-dash">-</span>';return'<span class="badge '+r.toLowerCase()+'">'+r+'</span>';}function dH(r,d){if(d)return d;if(r==='OK')return'<span class="cond">'+L.conditional+'</span>';return'';}function rw(l,c){var g=gR(c);return'<tr><td>'+l+'</td><td>'+bH(g.r)+'</td><td>'+dH(g.r,g.d)+'</td></tr>';}function gr(l){return'<tr class="group-row"><td colspan="3">▸ '+l+'</td></tr>';}var h='<thead><tr><th>'+L.item+'</th><th>'+L.result+'</th><th>'+L.data+'</th></tr></thead><tbody>';h+=rw(L.header,'00');h+=gr(L.spec);h+=rw(L.supplier,'10');h+=rw(L.partNo,'11');h+=rw(L.seqCode,'12');if(f['13'])h+=rw(L.eoNo,'13');h+=gr(L.trace);h+=rw(L.prodDate,'20');h+=rw(L.part4m,'21');h+=rw(L.aOrAt,'22');h+=rw(L.traceNo,'23');if(f['30']||f['31']){h+=gr(L.additional);if(f['30'])h+=rw(L.special,'30');if(f['31'])h+=rw(L.initial,'31');}if(f['40']){h+=gr(L.etc);h+=rw(L.supplierArea,'40');}h+=rw(L.trailer,'50');h+='</tbody>';document.getElementById('resultTable').innerHTML=h;document.getElementById('resultSection').style.display='';}
+
+function analyzeManual(){var v=document.getElementById('manualInput').value.trim();if(v){document.getElementById('manualInput').value='';processBarcode(v);}}
+function setSample(n){var s1="[)>\x1e06\x1dVPF30\x1dP571003F400\x1dS\x1dT150520S1B2A0476217\x1dE\x1d1A\x1dM\x1dC\x1d\x1e\x04";document.getElementById('manualInput').value=n===1?s1:s1+"#[)>\x1e06\x1dVPF30\x1dP571003F400\x1dSALC12\x1dT150520S1B2A0476217\x1d\x1e\x04";}
+
+function renderHistory(){var L=LANG[currentLang],el=document.getElementById('historyContent');if(historyList.length===0){el.innerHTML='<div class="empty-state"><div class="icon">📋</div><div class="text">'+L.noData+'</div></div>';return;}var h='';historyList.forEach(function(it,i){h+='<div class="hist-item"><span class="badge lg '+it.okng.toLowerCase()+'">'+it.okng+'</span><div class="meta"><div class="date">'+it.date+'</div><div class="barcode">'+escHtml(it.barcode)+'</div></div><button class="view-btn" onclick="viewHistory('+i+')">'+L.view+'</button></div>';});el.innerHTML=h;}
+function viewHistory(i){processBarcode(historyList[i].barcode);}
+function clearHistory(){if(confirm(LANG[currentLang].deleteConfirm)){historyList=[];updateHB();renderHistory();}}
+function updateHB(){var b=document.getElementById('histBtn'),e=b.querySelector('.notif');if(e)e.remove();if(historyList.length>0){var n=document.createElement('span');n.className='notif';n.textContent=historyList.length>9?'9+':historyList.length;b.appendChild(n);}}
+
+function startScan(){document.getElementById('scannerOverlay').style.display='flex';document.getElementById('scanRec').style.display='none';document.getElementById('scanLoading').style.display='';document.getElementById('scanError').style.display='none';document.getElementById('scanWarn').style.display='none';document.getElementById('scanLine').style.display='';initCam();}
+function closeScanner(){stopCam();document.getElementById('scannerOverlay').style.display='none';}
+function closeScannerToManual(){closeScanner();showPage('input');}
+function stopCam(){if(scanAnimFrame){cancelAnimationFrame(scanAnimFrame);scanAnimFrame=null;}if(cameraStream){cameraStream.getTracks().forEach(function(t){t.stop();});cameraStream=null;}var v=document.getElementById('scanVideo');if(v)v.srcObject=null;}
+function retryCamera(){document.getElementById('scanError').style.display='none';initCam();}
+async function initCam(){var L=LANG[currentLang];try{if('BarcodeDetector' in window){var fm=await window.BarcodeDetector.getSupportedFormats();var w=['data_matrix','qr_code','code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','pdf417','aztec'];var s=fm.filter(function(f){return w.indexOf(f)>=0;});barcodeDetector=s.length>0?new BarcodeDetector({formats:s}):new BarcodeDetector();}else{barcodeDetector=null;document.getElementById('scanWarn').style.display='';document.getElementById('scanWarn').textContent=L.noBarcodeAPI;}var st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});cameraStream=st;var v=document.getElementById('scanVideo');v.srcObject=st;await v.play();document.getElementById('scanRec').style.display='flex';document.getElementById('scanLoading').style.display='none';scanLoop();}catch(e){document.getElementById('scanLoading').style.display='none';document.getElementById('scanRec').style.display='none';document.getElementById('scanLine').style.display='none';document.getElementById('scanError').style.display='';document.getElementById('scanErrMsg').textContent=e.name==='NotAllowedError'?L.cameraPermission:L.cameraError;}}
+function scanLoop(){var v=document.getElementById('scanVideo'),c=document.getElementById('scanCanvas');if(!v||!c||v.readyState<2){scanAnimFrame=requestAnimationFrame(scanLoop);return;}var ctx=c.getContext('2d',{willReadFrequently:true});c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0);if(barcodeDetector){barcodeDetector.detect(c).then(function(bc){if(bc.length>0){stopCam();document.getElementById('scannerOverlay').style.display='none';processBarcode(bc[0].rawValue);return;}scanAnimFrame=requestAnimationFrame(scanLoop);}).catch(function(){scanAnimFrame=requestAnimationFrame(scanLoop);});}else scanAnimFrame=requestAnimationFrame(scanLoop);}
+
+/* ===== GALLERY / IMAGE UPLOAD ===== */
+var galleryInput=document.getElementById('galleryInput');
+function openGallery(){galleryInput.value='';galleryInput.click();}
+
+galleryInput.addEventListener('change',function(e){
+  var file=e.target.files[0];if(!file)return;
+  var L=LANG[currentLang],pa=document.getElementById('imgPreviewArea'),pi=document.getElementById('imgPreviewImg'),sp=document.getElementById('imgSpinner'),st=document.getElementById('imgStatusText');
+  pa.style.display='block';st.textContent=L.imgScanning;st.className='status-text scanning';sp.style.display='block';
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    pi.src=ev.target.result;
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.getElementById('imgScanCanvas');
+      var maxD=1600,w=img.width,h=img.height;
+      if(w>maxD||h>maxD){var r=Math.min(maxD/w,maxD/h);w=Math.round(w*r);h=Math.round(h*r);}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,w,h);
+      detectFromImg(canvas,L,0);
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function detectFromImg(canvas,L,attempt){
+  var st=document.getElementById('imgStatusText'),sp=document.getElementById('imgSpinner');
+  if(!('BarcodeDetector' in window)){sp.style.display='none';st.textContent=L.imgNotSupported;st.className='status-text notfound';return;}
+  window.BarcodeDetector.getSupportedFormats().then(function(fm){
+    var w=['data_matrix','qr_code','code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','pdf417','aztec'];
+    var s=fm.filter(function(f){return w.indexOf(f)>=0;});
+    var det=s.length>0?new BarcodeDetector({formats:s}):new BarcodeDetector();
+    det.detect(canvas).then(function(bc){
+      if(bc.length>0){sp.style.display='none';st.textContent=L.imgFound;st.className='status-text found';setTimeout(function(){processBarcode(bc[0].rawValue);},800);return;}
+      if(attempt<3){
+        var ctx=canvas.getContext('2d',{willReadFrequently:true});
+        var id=ctx.getImageData(0,0,canvas.width,canvas.height),d=id.data;
+        if(attempt===0){for(var i=0;i<d.length;i+=4){var avg=(d[i]+d[i+1]+d[i+2])/3;d[i]=d[i+1]=d[i+2]=avg>128?255:0;}}
+        else if(attempt===1){for(var i=0;i<d.length;i+=4){d[i]=255-d[i];d[i+1]=255-d[i+1];d[i+2]=255-d[i+2];}}
+        else{for(var i=0;i<d.length;i+=4){var g=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;d[i]=d[i+1]=d[i+2]=g>100?255:0;}}
+        ctx.putImageData(id,0,0);
+        setTimeout(function(){detectFromImg(canvas,L,attempt+1);},200);
+      }else{sp.style.display='none';st.innerHTML=L.imgNotFound+'<br><span style="font-size:10px;color:var(--gray-400)">'+L.imgTip+'</span>';st.className='status-text notfound';}
+    }).catch(function(){sp.style.display='none';st.textContent=L.imgNotFound;st.className='status-text notfound';});
+  }).catch(function(){sp.style.display='none';st.textContent=L.imgNotSupported;st.className='status-text notfound';});
+}
+
+function closeImgPreview(){document.getElementById('imgPreviewArea').style.display='none';document.getElementById('imgPreviewImg').src='';}
+
+setLang('ko');
+</script>
+</body>
+</html>

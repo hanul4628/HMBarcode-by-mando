@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="HM Barcode">
 <meta name="theme-color" content="#1d4ed8">
 <title>HM Barcode Checker</title>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <style>
 :root{--blue:#1d4ed8;--blue-light:#3b82f6;--blue-dark:#1e40af;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-700:#374151;--gray-800:#1f2937;--safe-b:env(safe-area-inset-bottom,0px)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -67,8 +68,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .img-preview-status .status-text.scanning{color:var(--blue)}.img-preview-status .status-text.found{color:var(--green)}.img-preview-status .status-text.notfound{color:var(--red)}
 .img-preview-close{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
 .scanner-overlay{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column}
-.scanner-overlay video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner-overlay canvas{display:none}
-.scan-ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+/* html5-qrcode 컨테이너 CSS 수정 */
+#qr-reader{position:absolute;inset:0;width:100%;height:100%}
+#qr-reader video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+.scan-ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .scan-dim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.25) 35%,rgba(0,0,0,0.25) 65%,rgba(0,0,0,0.6) 100%)}
 .scan-frame{position:relative;width:250px;height:250px}.scan-frame .border{position:absolute;inset:0;border:2px solid rgba(255,255,255,0.25);border-radius:16px}
 .scan-frame .corner{position:absolute;width:36px;height:36px}
@@ -78,16 +82,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .scan-frame .corner.br{bottom:0;right:0;border-bottom:4px solid #60a5fa;border-right:4px solid #60a5fa;border-bottom-right-radius:14px}
 .scan-line{position:absolute;left:12px;right:12px;height:2px;top:12px;background:linear-gradient(90deg,transparent,#60a5fa,transparent);border-radius:2px;animation:scanMove 2s ease-in-out infinite}
 @keyframes scanMove{0%,100%{top:12px;opacity:0.3}50%{top:calc(100% - 14px);opacity:1}}
-.scan-status{position:absolute;top:0;left:0;right:0;padding:52px 20px 0}
+.scan-status{position:absolute;top:0;left:0;right:0;padding:52px 20px 0;pointer-events:none}
 .scan-status .rec{display:flex;align-items:center;gap:8px}.scan-status .dot{width:10px;height:10px;background:#ef4444;border-radius:50%;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 .scan-status .rec span{color:#fff;font-size:13px;font-weight:600}
-.scan-guide{position:absolute;bottom:0;left:0;right:0;padding-bottom:20px;text-align:center}
+.scan-guide{position:absolute;bottom:0;left:0;right:0;padding-bottom:20px;text-align:center;pointer-events:none}
 .scan-guide p{color:#fff;font-size:13px;font-weight:500;margin-bottom:4px}.scan-guide .sub{color:rgba(255,255,255,0.5);font-size:11px}
 .scan-guide .warn{color:#fbbf24;font-size:11px;margin-top:8px;padding:0 24px}
-.scan-bottom{background:rgba(0,0,0,0.9);padding:12px 20px;padding-bottom:calc(12px + var(--safe-b))}
-.scan-stop{width:100%;padding:14px;border:none;border-radius:16px;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;font-size:15px;font-weight:700}.scan-stop:active{background:rgba(255,255,255,0.2)}
-.scan-error{padding:0 24px}.scan-error .err-box{background:rgba(239,68,68,0.15);backdrop-filter:blur(12px);border-radius:16px;padding:16px}
+.scan-bottom{background:rgba(0,0,0,0.9);padding:12px 20px;padding-bottom:calc(12px + var(--safe-b));z-index:10}
+.scan-stop{width:100%;padding:14px;border:none;border-radius:16px;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;font-size:15px;font-weight:700;position:relative;z-index:20}.scan-stop:active{background:rgba(255,255,255,0.2)}
+.scan-error{padding:0 24px;pointer-events:auto}.scan-error .err-box{background:rgba(239,68,68,0.15);backdrop-filter:blur(12px);border-radius:16px;padding:16px}
 .scan-error .err-msg{color:#fca5a5;font-size:13px;font-weight:600;margin-bottom:12px}
 .scan-error .err-btns{display:flex;gap:8px}.scan-error .err-btn{flex:1;padding:10px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}
 .flash{position:fixed;inset:0;z-index:200;background:rgba(74,222,128,0.2);pointer-events:none;animation:fadeOut 0.6s ease-out forwards}
@@ -166,7 +170,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 </div>
 
 <div id="scannerOverlay" class="scanner-overlay" style="display:none">
-  <video id="scanVideo" playsinline muted autoplay></video><canvas id="scanCanvas"></canvas>
+  <div id="qr-reader"></div>
   <div class="scan-ui"><div class="scan-dim"></div><div class="scan-frame"><div class="border"></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div><div class="scan-line" id="scanLine"></div></div></div>
   <div class="scan-status"><div class="rec" id="scanRec" style="display:none"><div class="dot"></div><span id="scanningText"></span></div><div id="scanLoading" style="color:rgba(255,255,255,0.5);font-size:13px">Loading...</div></div>
   <div class="scan-guide"><p id="scanGuideText"></p><div class="sub" id="scanFmtText"></div><div class="warn" id="scanWarn" style="display:none"></div><div class="scan-error" id="scanError" style="display:none"><div class="err-box"><div class="err-msg" id="scanErrMsg"></div><div class="err-btns"><button class="err-btn" onclick="retryCamera()" id="retryBtn"></button><button class="err-btn" onclick="closeScannerToManual()" id="manualBtn"></button></div></div></div></div>
@@ -174,7 +178,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 </div>
 
 <div id="flashEffect" class="flash" style="display:none"></div>
-<canvas id="imgScanCanvas" style="display:none"></canvas>
 
 <script>
 function DataAnalyzer(){
@@ -201,7 +204,9 @@ function DataAnalyzer(){
 
 var LANG={ko:{appTitle:'HM Barcode Checker',standard:'H/KMC부품 2D 바코드 표준',scan:'스캔',history:'이력',lang:'언어',manual:'수동입력',barcodeContent:'바코드내용',item:'구분',result:'결과',data:'Data',header:'Header',spec:'사양정보',supplier:'업체코드',partNo:'부품번호',seqCode:'서열코드',eoNo:'EO번호',trace:'추적정보',prodDate:'생산일자',part4m:'부품4M',aOrAt:'A or @',traceNo:'추적번호(7~)',additional:'부가정보',special:'특이정보',initial:'초도품구분',etc:'기타',supplierArea:'업체영역',trailer:'Trailer',close:'닫기',histTitle:'바코드이력',view:'보기',noData:'등록된 데이터가 없습니다',clearAll:'전체삭제',selectLang:'언어 선택',inputTitle:'바코드 입력',analyze:'분석',cancel:'취소',conditional:'해당시 필수',placeholder:'바코드 데이터를 직접 입력하세요...',hint:'※ 특수문자: GS=\\x1d, RS=\\x1e, EOT=\\x04',sampleLabel:'샘플 데이터:',sample1:'샘플 바코드 1 (단일)',sample2:'샘플 바코드 2 (다중)',scanning:'스캔 중...',scanGuide:'바코드를 사각형 안에 맞춰주세요',formatInfo:'DataMatrix / QR / Code128 지원',stopScan:'스캔 중지',cameraError:'카메라 접근 실패',cameraPermission:'카메라 권한을 허용해주세요',retryCamera:'카메라 재시도',useManual:'수동입력',noBarcodeAPI:'⚠ BarcodeDetector 미지원 브라우저입니다. Chrome을 사용하거나 수동입력을 이용해주세요.',deleteConfirm:'전체 이력을 삭제하시겠습니까?',emptyGuide:'아래 스캔 버튼을 눌러\n바코드를 분석하세요',camCard:'실시간 스캔',camCardDesc:'카메라로 바코드 인식',galCard:'사진 업로드',galCardDesc:'갤러리에서 불러오기',orManual:'또는 직접 입력',imgScanning:'바코드 인식 중...',imgFound:'✓ 바코드 발견! 분석 중...',imgNotFound:'바코드를 찾을 수 없습니다',imgNotSupported:'이 브라우저에서 이미지 바코드 인식이 지원되지 않습니다',imgTip:'사진이 선명하고 바코드가 잘 보이는지 확인해주세요'},en:{appTitle:'HM Barcode Checker',standard:'H/KMC Part 2D Barcode Standard',scan:'Scan',history:'History',lang:'Language',manual:'Manual',barcodeContent:'Barcode Content',item:'Item',result:'Result',data:'Data',header:'Header',spec:'Spec Info',supplier:'Supplier Code',partNo:'Part Number',seqCode:'Seq Code',eoNo:'EO Number',trace:'Traceability',prodDate:'Production Date',part4m:'Part 4M',aOrAt:'A or @',traceNo:'Trace No.(7~)',additional:'Additional',special:'Special Code',initial:'Initial Sample',etc:'ETC',supplierArea:'Supplier Area',trailer:'Trailer',close:'Close',histTitle:'Barcode History',view:'View',noData:'No data registered',clearAll:'Clear All',selectLang:'Select Language',inputTitle:'Barcode Input',analyze:'Analyze',cancel:'Cancel',conditional:'Conditional',placeholder:'Enter barcode data manually...',hint:'※ Special: GS=\\x1d, RS=\\x1e, EOT=\\x04',sampleLabel:'Sample Data:',sample1:'Sample Barcode 1 (Single)',sample2:'Sample Barcode 2 (Multi)',scanning:'Scanning...',scanGuide:'Align barcode within the frame',formatInfo:'DataMatrix / QR / Code128 supported',stopScan:'Stop Scan',cameraError:'Camera access failed',cameraPermission:'Please allow camera access',retryCamera:'Retry Camera',useManual:'Manual Input',noBarcodeAPI:'⚠ BarcodeDetector not supported. Use Chrome or manual input.',deleteConfirm:'Delete all history?',emptyGuide:'Press Scan below\nto analyze a barcode',camCard:'Live Scan',camCardDesc:'Scan with camera',galCard:'Upload Photo',galCardDesc:'Choose from gallery',orManual:'or enter manually',imgScanning:'Detecting barcode...',imgFound:'✓ Barcode found! Analyzing...',imgNotFound:'No barcode detected',imgNotSupported:'Image barcode detection not supported',imgTip:'Make sure photo is clear and barcode is visible'}};
 
-var currentLang='ko',analyzer=new DataAnalyzer(),historyList=[],cameraStream=null,scanAnimFrame=null,barcodeDetector=null;
+var currentLang='ko',analyzer=new DataAnalyzer(),historyList=[];
+// html5-qrcode 객체 변수
+var html5QrCode = null;
 
 function showPage(n){document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});document.getElementById('page-'+n).classList.add('active');if(n==='history')renderHistory();if(n==='input')closeImgPreview();window.scrollTo(0,0);}
 
@@ -230,13 +235,71 @@ function viewHistory(i){processBarcode(historyList[i].barcode);}
 function clearHistory(){if(confirm(LANG[currentLang].deleteConfirm)){historyList=[];updateHB();renderHistory();}}
 function updateHB(){var b=document.getElementById('histBtn'),e=b.querySelector('.notif');if(e)e.remove();if(historyList.length>0){var n=document.createElement('span');n.className='notif';n.textContent=historyList.length>9?'9+':historyList.length;b.appendChild(n);}}
 
-function startScan(){document.getElementById('scannerOverlay').style.display='flex';document.getElementById('scanRec').style.display='none';document.getElementById('scanLoading').style.display='';document.getElementById('scanError').style.display='none';document.getElementById('scanWarn').style.display='none';document.getElementById('scanLine').style.display='';initCam();}
-function closeScanner(){stopCam();document.getElementById('scannerOverlay').style.display='none';}
-function closeScannerToManual(){closeScanner();showPage('input');}
-function stopCam(){if(scanAnimFrame){cancelAnimationFrame(scanAnimFrame);scanAnimFrame=null;}if(cameraStream){cameraStream.getTracks().forEach(function(t){t.stop();});cameraStream=null;}var v=document.getElementById('scanVideo');if(v)v.srcObject=null;}
-function retryCamera(){document.getElementById('scanError').style.display='none';initCam();}
-async function initCam(){var L=LANG[currentLang];try{if('BarcodeDetector' in window){var fm=await window.BarcodeDetector.getSupportedFormats();var w=['data_matrix','qr_code','code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','pdf417','aztec'];var s=fm.filter(function(f){return w.indexOf(f)>=0;});barcodeDetector=s.length>0?new BarcodeDetector({formats:s}):new BarcodeDetector();}else{barcodeDetector=null;document.getElementById('scanWarn').style.display='';document.getElementById('scanWarn').textContent=L.noBarcodeAPI;}var st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});cameraStream=st;var v=document.getElementById('scanVideo');v.srcObject=st;await v.play();document.getElementById('scanRec').style.display='flex';document.getElementById('scanLoading').style.display='none';scanLoop();}catch(e){document.getElementById('scanLoading').style.display='none';document.getElementById('scanRec').style.display='none';document.getElementById('scanLine').style.display='none';document.getElementById('scanError').style.display='';document.getElementById('scanErrMsg').textContent=e.name==='NotAllowedError'?L.cameraPermission:L.cameraError;}}
-function scanLoop(){var v=document.getElementById('scanVideo'),c=document.getElementById('scanCanvas');if(!v||!c||v.readyState<2){scanAnimFrame=requestAnimationFrame(scanLoop);return;}var ctx=c.getContext('2d',{willReadFrequently:true});c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0);if(barcodeDetector){barcodeDetector.detect(c).then(function(bc){if(bc.length>0){stopCam();document.getElementById('scannerOverlay').style.display='none';processBarcode(bc[0].rawValue);return;}scanAnimFrame=requestAnimationFrame(scanLoop);}).catch(function(){scanAnimFrame=requestAnimationFrame(scanLoop);});}else scanAnimFrame=requestAnimationFrame(scanLoop);}
+function startScan(){
+  document.getElementById('scannerOverlay').style.display='flex';
+  document.getElementById('scanRec').style.display='none';
+  document.getElementById('scanLoading').style.display='';
+  document.getElementById('scanError').style.display='none';
+  document.getElementById('scanWarn').style.display='none';
+  document.getElementById('scanLine').style.display='';
+  initCam();
+}
+
+function closeScanner(){
+  stopCam();
+  document.getElementById('scannerOverlay').style.display='none';
+}
+
+function closeScannerToManual(){
+  closeScanner();
+  showPage('input');
+}
+
+function stopCam(){
+  if(html5QrCode && html5QrCode.isScanning) {
+    html5QrCode.stop().then(function() {
+      html5QrCode.clear();
+    }).catch(function(err) {
+      console.log("Failed to stop scanning.", err);
+    });
+  }
+}
+
+function retryCamera(){
+  document.getElementById('scanError').style.display='none';
+  initCam();
+}
+
+function initCam(){
+  var L=LANG[currentLang];
+  document.getElementById('scanRec').style.display='flex';
+  document.getElementById('scanLoading').style.display='none';
+
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("qr-reader");
+  }
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    function(decodedText, decodedResult) {
+      // 스캔 성공 시
+      stopCam();
+      document.getElementById('scannerOverlay').style.display='none';
+      processBarcode(decodedText);
+    },
+    function(errorMessage) {
+      // 스캔 실패 (인식 중 지속적으로 발생하므로 무시)
+    }
+  ).catch(function(err) {
+    // 카메라 권한 거부 등 초기화 에러
+    document.getElementById('scanLoading').style.display='none';
+    document.getElementById('scanRec').style.display='none';
+    document.getElementById('scanLine').style.display='none';
+    document.getElementById('scanError').style.display='';
+    document.getElementById('scanErrMsg').textContent=L.cameraError;
+  });
+}
 
 /* ===== GALLERY / IMAGE UPLOAD ===== */
 var galleryInput=document.getElementById('galleryInput');
@@ -246,44 +309,31 @@ galleryInput.addEventListener('change',function(e){
   var file=e.target.files[0];if(!file)return;
   var L=LANG[currentLang],pa=document.getElementById('imgPreviewArea'),pi=document.getElementById('imgPreviewImg'),sp=document.getElementById('imgSpinner'),st=document.getElementById('imgStatusText');
   pa.style.display='block';st.textContent=L.imgScanning;st.className='status-text scanning';sp.style.display='block';
+  
   var reader=new FileReader();
   reader.onload=function(ev){
     pi.src=ev.target.result;
-    var img=new Image();
-    img.onload=function(){
-      var canvas=document.getElementById('imgScanCanvas');
-      var maxD=1600,w=img.width,h=img.height;
-      if(w>maxD||h>maxD){var r=Math.min(maxD/w,maxD/h);w=Math.round(w*r);h=Math.round(h*r);}
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,w,h);
-      detectFromImg(canvas,L,0);
-    };
-    img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
-});
 
-function detectFromImg(canvas,L,attempt){
-  var st=document.getElementById('imgStatusText'),sp=document.getElementById('imgSpinner');
-  if(!('BarcodeDetector' in window)){sp.style.display='none';st.textContent=L.imgNotSupported;st.className='status-text notfound';return;}
-  window.BarcodeDetector.getSupportedFormats().then(function(fm){
-    var w=['data_matrix','qr_code','code_128','code_39','ean_13','ean_8','upc_a','upc_e','itf','codabar','pdf417','aztec'];
-    var s=fm.filter(function(f){return w.indexOf(f)>=0;});
-    var det=s.length>0?new BarcodeDetector({formats:s}):new BarcodeDetector();
-    det.detect(canvas).then(function(bc){
-      if(bc.length>0){sp.style.display='none';st.textContent=L.imgFound;st.className='status-text found';setTimeout(function(){processBarcode(bc[0].rawValue);},800);return;}
-      if(attempt<3){
-        var ctx=canvas.getContext('2d',{willReadFrequently:true});
-        var id=ctx.getImageData(0,0,canvas.width,canvas.height),d=id.data;
-        if(attempt===0){for(var i=0;i<d.length;i+=4){var avg=(d[i]+d[i+1]+d[i+2])/3;d[i]=d[i+1]=d[i+2]=avg>128?255:0;}}
-        else if(attempt===1){for(var i=0;i<d.length;i+=4){d[i]=255-d[i];d[i+1]=255-d[i+1];d[i+2]=255-d[i+2];}}
-        else{for(var i=0;i<d.length;i+=4){var g=d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114;d[i]=d[i+1]=d[i+2]=g>100?255:0;}}
-        ctx.putImageData(id,0,0);
-        setTimeout(function(){detectFromImg(canvas,L,attempt+1);},200);
-      }else{sp.style.display='none';st.innerHTML=L.imgNotFound+'<br><span style="font-size:10px;color:var(--gray-400)">'+L.imgTip+'</span>';st.className='status-text notfound';}
-    }).catch(function(){sp.style.display='none';st.textContent=L.imgNotFound;st.className='status-text notfound';});
-  }).catch(function(){sp.style.display='none';st.textContent=L.imgNotSupported;st.className='status-text notfound';});
-}
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("qr-reader"); 
+  }
+
+  // 라이브러리 내장 이미지 분석 기능 사용
+  html5QrCode.scanFile(file, true)
+  .then(function(decodedText) {
+    sp.style.display='none';
+    st.textContent=L.imgFound;
+    st.className='status-text found';
+    setTimeout(function(){ processBarcode(decodedText); }, 800);
+  })
+  .catch(function(err) {
+    sp.style.display='none';
+    st.innerHTML=L.imgNotFound+'<br><span style="font-size:10px;color:var(--gray-400)">'+L.imgTip+'</span>';
+    st.className='status-text notfound';
+  });
+});
 
 function closeImgPreview(){document.getElementById('imgPreviewArea').style.display='none';document.getElementById('imgPreviewImg').src='';}
 

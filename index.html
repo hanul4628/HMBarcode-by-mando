@@ -334,7 +334,7 @@ body {
 
   <div class="wrap">
 
-    <div class="hero-card">
+    <div class="hero-card" id="heroCard">
       <div class="hero-label">바코드 분석기</div>
       <div class="hero-value">스캔 대기 중</div>
       <div class="hero-sub">아래 버튼을 눌러 스캔하세요</div>
@@ -492,6 +492,12 @@ var currentLang='ko', analyzer=new DataAnalyzer(), historyList=[], html5QrCode=n
 function showPage(n){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page-'+n).classList.add('active');
+  
+  // 메인 페이지로 돌아왔을 때 스캔 결과가 없다면(초기화 상태라면) Hero 카드 다시 표시
+  if(n === 'main' && document.getElementById('barcodePanel').style.display === 'none') {
+    document.getElementById('heroCard').style.display = '';
+  }
+  
   if(n==='history')renderHistory();
   window.scrollTo(0,0);
 }
@@ -512,6 +518,10 @@ function processBarcode(data){
   analyzer.setBarcodeData(data);
   var ok=analyzer.getCheckResult(), RD=analyzer.getResultData(), tc=analyzer.getCount();
 
+  // 스캔 완료 시 초기 상단 Hero 카드(스캔 대기 중) 숨김 처리
+  var heroCard = document.getElementById('heroCard');
+  if(heroCard) heroCard.style.display = 'none';
+
   // barcode raw
   document.getElementById('barcodePanel').style.display='';
   document.getElementById('fullViewData').innerHTML=analyzer.getFullViewData();
@@ -530,7 +540,7 @@ function processBarcode(data){
   document.getElementById('resultPanel').style.display='';
   renderTable(RD,L);
 
-  // rescan
+  // rescan 하단 버튼 보이기
   document.getElementById('rescanWrap').style.display='';
 
   // history

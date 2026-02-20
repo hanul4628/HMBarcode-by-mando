@@ -56,7 +56,6 @@ body {
 /* ── HEADER ── */
 .hdr {
   background: #002C5F;
-  /* 상단 패딩을 노치 영역(safe-area)을 고려해 동적 계산하여 슬림하고 정중앙에 위치하도록 수정 */
   padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 14px;
   display: flex; align-items: center; justify-content: center;
   position: sticky; top:0; z-index:30;
@@ -67,7 +66,7 @@ body {
   width: 100%;
 }
 .hdr-logo {
-  height: 38px; width: auto; /* 제공된 SVG 비율에 맞춘 최적 크기 */
+  height: 38px; width: auto; 
 }
 .hdr-title { 
   font-size: 13px; font-weight: 800; color: rgba(255, 255, 255, 0.9); 
@@ -76,7 +75,6 @@ body {
 
 /* ── CONTENT WRAPPER ── */
 .wrap { padding: 16px 16px 0; transition: padding 0.2s; }
-/* 결과 캡처 화면을 위해 상단 헤더가 사라졌을 때 노치 영역 침범을 막는 여백 클래스 */
 .wrap.no-hdr { padding-top: calc(24px + env(safe-area-inset-top, 0px)); }
 
 /* ── HERO CARD ── */
@@ -122,12 +120,12 @@ body {
 
 /* ── SECTION LABEL ── */
 .sec-label {
-  font-size: 14px; font-weight: 800;
+  font-size: 15px; font-weight: 800;
   color: var(--ink-2);
   text-transform: uppercase; letter-spacing: .5px;
-  margin: 20px 2px 10px; display:flex; align-items:center; gap:8px;
+  margin: 24px 4px 12px; display:flex; align-items:center; gap:8px;
 }
-.sec-label svg { width: 18px; height: 18px; stroke: var(--p); stroke-width: 2.5; fill: none; }
+.sec-label svg { width: 20px; height: 20px; stroke: var(--p); stroke-width: 2.5; fill: none; }
 .sec-label::after { content:''; flex:1; height:1.5px; background:var(--border); }
 
 /* ── PANEL CARD ── */
@@ -140,62 +138,62 @@ body {
 @keyframes cardIn { from{opacity:0;transform:translateY(12px) scale(.97)} to{opacity:1;transform:none} }
 
 .panel-head {
-  padding:14px 16px;
+  padding:16px 18px;
   display:flex; align-items:center; justify-content:space-between;
   border-bottom:1px solid var(--border);
 }
-.panel-head-l { display:flex; align-items:center; gap:10px; }
+.panel-head-l { display:flex; align-items:center; gap:12px; }
 .panel-icon {
-  width:34px; height:34px; border-radius:10px;
+  width:36px; height:36px; border-radius:10px;
   background:var(--p-ghost);
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-.panel-icon svg { width:18px; height:18px; stroke:var(--p); fill:none; stroke-width:2.5; }
-.panel-title    { font-size:15px; font-weight:800; color:var(--ink); }
-.panel-sub      { font-size:12px; color:var(--ink-3); margin-top:2px; }
+.panel-icon svg { width:20px; height:20px; stroke:var(--p); fill:none; stroke-width:2.5; }
+.panel-title    { font-size:16px; font-weight:800; color:var(--ink); }
+.panel-sub      { font-size:13px; color:var(--ink-3); margin-top:3px; }
 .panel-chip {
-  padding:4px 12px; border-radius:999px;
-  font-size:12px; font-weight:800; letter-spacing:.3px;
+  padding:5px 14px; border-radius:999px;
+  font-size:13px; font-weight:800; letter-spacing:.3px;
 }
 .panel-chip.ok { background:var(--green-bg); color:var(--green); }
 .panel-chip.ng { background:var(--red-bg);   color:var(--red); }
 
 /* barcode raw */
 .barcode-raw {
-  padding:16px;
+  padding:18px;
   font-family:'JetBrains Mono',monospace;
-  font-size:13px; line-height:2.2; word-break:break-all; white-space:pre-line;
+  font-size:15px; line-height:2.0; word-break:break-all; white-space:pre-line;
   color:var(--ink-2); background:var(--bg);
 }
-.highlight-yellow { background:#fef9c3; border-radius:4px; color:var(--ink); font-weight:700; padding:2px 4px; }
-.gs  { color:#ef4444; font-weight:700; font-size:11px; }
-.rs  { color:#10b981; font-weight:700; font-size:11px; }
-.eot { color:var(--p);  font-weight:700; font-size:11px; }
+.highlight-yellow { background:#fef9c3; border-radius:4px; color:var(--ink); font-weight:700; padding:3px 5px; }
+.gs  { color:#ef4444; font-weight:700; font-size:12px; }
+.rs  { color:#10b981; font-weight:700; font-size:12px; }
+.eot { color:var(--p);  font-weight:700; font-size:12px; }
 
 /* ── RESULT TABLE ── */
-.result-table { width:100%; border-collapse:collapse; font-size:13px; }
-.result-table th,.result-table td { border:1px solid var(--border); padding:10px; vertical-align:middle; }
+.result-table { width:100%; border-collapse:collapse; font-size:14px; }
+.result-table th,.result-table td { border:1px solid var(--border); padding:12px 10px; vertical-align:middle; }
 .result-table thead th {
   background:var(--p-ghost); color:var(--p);
   font-weight:800; text-align:center;
-  font-size:12px; letter-spacing:.5px; text-transform:uppercase;
+  font-size:13px; letter-spacing:.5px; text-transform:uppercase;
 }
-.td-head { background:var(--bg); text-align:center; font-weight:700; color:var(--ink-2); font-size:12px; white-space:pre-line; line-height:1.4; }
+.td-head { background:var(--bg); text-align:center; font-weight:700; color:var(--ink-2); font-size:13.5px; white-space:pre-line; line-height:1.4; }
 .td-center { text-align:center; }
-.td-data { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--ink); word-break:break-all; font-weight:500; }
-.badge-ok { display:inline-flex; align-items:center; background:var(--green-bg); color:var(--green); padding:3px 8px; border-radius:999px; font-size:11px; font-weight:900; animation: badgePop .2s cubic-bezier(.34,1.6,.64,1); }
-.badge-ng { display:inline-flex; align-items:center; background:var(--red-bg);   color:var(--red);   padding:3px 8px; border-radius:999px; font-size:11px; font-weight:900; animation: badgePop .2s cubic-bezier(.34,1.6,.64,1); }
+.td-data { font-family:'JetBrains Mono',monospace; font-size:14.5px; color:var(--ink); word-break:break-all; font-weight:600; }
+.badge-ok { display:inline-flex; align-items:center; background:var(--green-bg); color:var(--green); padding:4px 10px; border-radius:999px; font-size:12px; font-weight:900; animation: badgePop .2s cubic-bezier(.34,1.6,.64,1); }
+.badge-ng { display:inline-flex; align-items:center; background:var(--red-bg);   color:var(--red);   padding:4px 10px; border-radius:999px; font-size:12px; font-weight:900; animation: badgePop .2s cubic-bezier(.34,1.6,.64,1); }
 @keyframes badgePop { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
 
 /* ── TAB BAR ── */
-.tab-scroll { overflow-x:auto; padding:12px 16px 0; -webkit-overflow-scrolling:touch; }
+.tab-scroll { overflow-x:auto; padding:14px 18px 0; -webkit-overflow-scrolling:touch; }
 .tab-scroll::-webkit-scrollbar{display:none}
 .tab-row { display:flex; gap:8px; }
 .tab-btn {
-  flex-shrink:0; padding:8px 16px;
+  flex-shrink:0; padding:8px 18px;
   border:1.5px solid var(--border); background:var(--surface);
   border-radius:999px; font-family: inherit;
-  font-size:13px; font-weight:800; color:var(--ink-3); cursor:pointer; transition:all .15s;
+  font-size:14px; font-weight:800; color:var(--ink-3); cursor:pointer; transition:all .15s;
 }
 .tab-btn.active { background:var(--p); color:#fff; border-color:var(--p); box-shadow:0 3px 10px rgba(0, 180, 237, 0.3); }
 
@@ -511,7 +509,7 @@ body {
 /* ── DataAnalyzer ── */
 function DataAnalyzer(){var D=[],DL=[],RD=[],cnt=0,sel=0;this.setBarcodeData=function(s){D=[];DL=[];RD=[];cnt=0;sel=0;af(s);sd();};this.setSelectIndex=function(i){sel=i;};this.getSelectedIndex=function(){return sel;};this.getFullViewData=function(){var r='';DL.forEach(function(row,i){if(i===sel)r+='<span class="highlight-yellow">';row.forEach(function(v){r+=cc(v);});if(i===sel)r+='</span>';});return r;};this.getCount=function(){return cnt;};this.getCheckResult=function(){return dc();};this.getResultData=function(){return RD;};function af(s){D=[];for(var i=0;i<s.length;i++)if(s.charCodeAt(i)!==32)D.push(s.charCodeAt(i));}function sd(){var r=[];D.forEach(function(v){r.push(v);if(v===35){DL.push(r);r=[];cnt++;}});if(r.length>0){DL.push(r);cnt++;}}function lp(n,w){n=n+'';return n.length>=w?n:new Array(w-n.length+1).join('0')+n;}function cc(s){if(s===29)return'<span class="gs"><sup>G</sup><sub>S</sub></span>';if(s===30)return'<span class="rs"><sup>R</sup><sub>S</sub></span>';if(s===4)return'<span class="eot"><sup>E</sup>O<sub>T</sub></span>';if(s===35)return'#<br>';if((s>=0&&s<=32)||s===127)return'&lt;0x'+lp(s.toString(16).toUpperCase(),2)+'&gt;';return String.fromCharCode(s);}function ad(a){var r='';if(typeof a==='number')return cc(a);if(a)a.forEach(function(v){r+=cc(v);});return r;}function hc(a,c){return a.some(function(v){return v===c;});}function vd(a){var s='';a.forEach(function(v){s+=String.fromCharCode(v);});if(!/[0-9]{2}[0-1]{1}[0-9]{1}[0-9]{2}/.test(s))return false;var ld=[31,28,31,30,31,30,31,31,30,31,30,31],y=Number('20'+s.substr(0,2)),m=Number(s.substr(2,2)),d=Number(s.substr(4,2));if(m>12||m===0||d===0)return false;if(y%4===0&&(y%100!==0||y%400===0)&&m===2)return d<=29;return d<=ld[m-1];}function ba(a){if(!a||(Array.isArray(a)&&a.length===0))return false;var c=function(v){return v<47||(v>57&&v<65)||(v>90&&v<97)||v>122;};if(typeof a==='number')return c(a);for(var i=0;i<a.length;i++)if(c(a[i]))return true;return false;}function sg(a){var r=[],row=[];a.forEach(function(v){if(v===29){r.push(row.slice(0));row=[];}else row.push(v);});return r;}function fb(a){var c=-1;a.some(function(v,i){if(v===29){c=i;return true;}return false;});return a.slice(0,c);}function lb(a){var c=-1;for(var x=a.length;x>0;x--)if(a[x]===29){c=x+1;break;}return a.slice(c);}function dd(t,ok,d,ri){if(sel===ri){if(t!=='00'&&t!=='50')if(ba(d))ok=false;RD.push([t,ok?'OK':'NG',d!=null?ad(d):null]);}}function dc(){var result=true;RD=[];DL.forEach(function(rd,ri){var e00=0,e10=0,e11=0,e12=0,e13=0,e20=0,e21=0,e22=0,e23=0,e30=0,e31=0,e40=0,e50=0;if(rd.length>=7){if(rd[0]===91&&rd[1]===41&&rd[2]===62&&rd[3]===30&&rd[4]===48&&rd[5]===54&&rd[6]===29){e00=1;dd('00',true,rd.slice(0,6),ri);}else if(rd[0]===91){var c=-1;rd.some(function(v,i){if(v===29){c=i;return true;}return false;});if(c>0){e00=1;dd('00',false,rd.slice(0,c),ri);}}}else result=false;if(rd[rd.length-1]===35||rd[rd.length-1]===4){e50=1;if(rd[rd.length-4]===29&&rd[rd.length-3]===30&&rd[rd.length-2]===4&&rd[rd.length-1]===35)dd('50',true,rd.slice(rd.length-3,rd.length-1),ri);else if(rd[rd.length-3]===29&&rd[rd.length-2]===30&&rd[rd.length-1]===4)dd('50',true,rd.slice(rd.length-2),ri);else{result=false;var c2=-1;for(var x=rd.length;x>0;x--)if(rd[x]===29){c2=x+1;break;}dd('50',false,rd.slice(c2),ri);}}sg(rd).forEach(function(pd){if(pd[0]===86){e10=1;dd('10',pd.length===5,pd.slice(1),ri);if(pd.length!==5)result=false;}else if(pd[0]===80){e11=1;if(pd.length>10&&pd.length<17){if(!hc(pd,45))dd('11',true,pd.slice(1),ri);else dd('11',false,pd.slice(1),ri);}else{result=false;dd('11',false,pd.slice(1),ri);}}else if(pd[0]===83){e12=1;if(pd.length>0&&pd.length<10)dd('12',true,pd.slice(1),ri);else{result=false;dd('12',false,pd.slice(1),ri);}}else if(pd[0]===69){e13=1;if((pd.length>8&&pd.length<11)||pd.length===1)dd('13',true,pd.slice(1),ri);else{result=false;dd('13',false,pd.slice(1),ri);}}else if(pd[0]===84){if(pd.length>6){e20=1;if(vd(pd.slice(1,7)))dd('20',true,pd.slice(1,7),ri);else{result=false;dd('20',false,pd.slice(1,7),ri);}}if(pd.length>7){e21=1;if(pd.length>10)dd('21',true,pd.slice(7,11),ri);else{result=false;dd('21',false,pd.slice(7),ri);}}if(pd.length>11){e22=1;if(pd[11]===64||pd[11]===65)dd('22',true,pd[11],ri);else{result=false;dd('22',false,pd[11],ri);}}if(pd.length>12){e23=1;dd('23',true,pd.slice(12),ri);}}else if(pd[0]>48&&pd[0]<58){e30=1;if(pd.length>1&&pd.length<42)dd('30',true,pd.slice(2),ri);else{result=false;dd('30',false,pd.slice(2),ri);}}else if(pd[0]===77){e31=1;if(pd.length===1)dd('31',true,pd[1],ri);else if(pd.length===2){if(pd[1]===89||pd[1]===78)dd('31',true,pd[1],ri);else{result=false;dd('31',false,pd[1],ri);}}else{result=false;dd('31',false,pd[1],ri);}}else if(pd[0]===67){e40=1;if(pd.length>0&&pd.length<52)dd('40',true,pd.slice(1),ri);else{result=false;dd('40',false,pd.slice(1),ri);}}});if(!e00){result=false;dd('00',false,fb(rd),ri);}if(!e10){result=false;dd('10',false,null,ri);}if(!e11){result=false;dd('11',false,null,ri);}if(!e12)dd('12',true,null,ri);if(!e20){result=false;dd('20',false,null,ri);}if(!e21){result=false;dd('21',false,null,ri);}if(!e22){result=false;dd('22',false,null,ri);}if(!e23){result=false;dd('23',false,null,ri);}if(!e50){result=false;dd('50',false,lb(rd),ri);}});return result;}}
 
-var LANG={ko:{standard:'H/KMC부품 2D 바코드 표준',scan:'스캔',history:'이력',lang:'언어',barcodeContent:'바코드 내용',item:'구분',result:'결과',data:'데이터',header:'Header',spec:'사양\n정보',supplier:'업체코드',partNo:'부품번호',seqCode:'서열코드',eoNo:'EO번호',trace:'추적\n정보',prodDate:'생산일자',part4m:'부품4M',aOrAt:'A or @',traceNo:'추적번호\n(7~)',additional:'부가\n정보',special:'특이정보',initial:'초도품구분',etc:'기타',supplierArea:'업체영역',trailer:'Trailer',close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',clearAll:'전체삭제',selectLang:'언어 선택',stopScan:'스캔 중지'},en:{standard:'H/KMC Part 2D Barcode Std.',scan:'Scan',history:'History',lang:'Lang',barcodeContent:'Barcode Content',item:'Item',result:'Result',data:'Data',header:'Header',spec:'Spec\nInfo',supplier:'Supplier',partNo:'Part No.',seqCode:'Seq Code',eoNo:'EO No.',trace:'Trace-\nability',prodDate:'Prod Date',part4m:'Part 4M',aOrAt:'A or @',traceNo:'Trace No.\n(7~)',additional:'Addi-\ntional',special:'Special',initial:'Initial',etc:'ETC',supplierArea:'Sup. Area',trailer:'Trailer',close:'Close',histTitle:'History',view:'View',noData:'No history yet',clearAll:'Clear All',selectLang:'Select Language',stopScan:'Stop Scan'}};
+var LANG={ko:{standard:'H/KMC부품 2D 바코드 표준',scan:'스캔',history:'이력',lang:'언어',barcodeContent:'바코드 내용',item:'구분',result:'결과',data:'데이터',header:'Header',spec:'사양\n정보',supplier:'업체코드',partNo:'부품번호',seqCode:'서열코드',eoNo:'EO번호',trace:'추적\n정보',prodDate:'생산일자',part4m:'부품4M',aOrAt:'A or @',traceNo:'추적번호\n(7~)',additional:'부가\n정보',special:'특이정보',initial:'초도품구분',etc:'기타',supplierArea:'업체영역',trailer:'Trailer',close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',clearAll:'전체삭제',selectLang:'언어 선택',stopScan:'스캔 중지'},en:{standard:'H/KMC Part 2D Barcode Std.',scan:'Scan',history:'History',lang:'Language',barcodeContent:'Barcode Content',item:'Item',result:'Result',data:'Data',header:'Header',spec:'Spec\nInfo',supplier:'Supplier',partNo:'Part No.',seqCode:'Seq Code',eoNo:'EO No.',trace:'Trace-\nability',prodDate:'Prod Date',part4m:'Part 4M',aOrAt:'A or @',traceNo:'Trace No.\n(7~)',additional:'Addi-\ntional',special:'Special',initial:'Initial',etc:'ETC',supplierArea:'Sup. Area',trailer:'Trailer',close:'Close',histTitle:'History',view:'View',noData:'No history yet',clearAll:'Clear All',selectLang:'Select Language',stopScan:'Stop Scan'}};
 
 var currentLang='ko', analyzer=new DataAnalyzer(), historyList=[], html5QrCode=null;
 
@@ -520,7 +518,6 @@ function showPage(n){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page-'+n).classList.add('active');
   
-  // 메인 페이지로 복귀 시, 스캔 결과가 없다면 헤더와 Hero 카드를 다시 표시
   if(n === 'main' && document.getElementById('barcodePanel').style.display === 'none') {
     var mainHeader = document.getElementById('mainHeader');
     if(mainHeader) mainHeader.style.display = 'flex';
@@ -550,7 +547,7 @@ function processBarcode(data){
   analyzer.setBarcodeData(data);
   var ok=analyzer.getCheckResult(), RD=analyzer.getResultData(), tc=analyzer.getCount();
 
-  // 스캔 결과 노출 시 헤더와 스캔 대기 카드를 숨겨 캡처 영역 확보
+  // 상단 로고 헤더 및 Hero 카드 숨김 처리 (캡처 화면 최적화)
   var mainHeader = document.getElementById('mainHeader');
   if(mainHeader) mainHeader.style.display = 'none';
   

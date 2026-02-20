@@ -6,14 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HKMC Barcode">
-<meta name="theme-color" content="#00B4ED">
-<title>HKMC 2D Barcode Reader</title>
+<meta name="theme-color" content="#002C5F"> <title>HKMC 2D Barcode Reader</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* HL Sky Blue Palette */
+  /* HL Sky Blue Palette (메인 테마 컬러) */
   --p:        #00B4ED;
   --p-mid:    #009acb;
   --p-light:  #4dd0f4;
@@ -53,22 +52,25 @@ body {
 .page.active { display:block; animation: pgIn .3s cubic-bezier(.4,0,.2,1); }
 @keyframes pgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
 
-/* ── HEADER ── */
+/* ── HEADER (어두운 배경 + 흰색 로고 스타일) ── */
 .hdr {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 40px 16px 16px;
+  background: #002C5F; /* 현대 네이비 색상 적용 */
+  padding: 45px 16px 20px;
   display: flex; align-items: center; justify-content: center;
   position: sticky; top:0; z-index:30;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* 헤더 하단에 부드러운 그림자 */
 }
 .hdr-left {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   width: 100%;
 }
 .hdr-logo {
-  height: 48px; width: auto; /* 로고 크기 대폭 확대 */
+  height: 44px; width: auto;
 }
-.hdr-title { font-size: 16px; font-weight: 800; color: var(--ink-2); letter-spacing: -.5px; }
+.hdr-title { 
+  font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.8); /* 텍스트를 연한 흰색으로 처리 */
+  letter-spacing: 1px; text-transform: uppercase;
+}
 
 /* ── CONTENT WRAPPER ── */
 .wrap { padding: 16px 16px 0; }
@@ -322,7 +324,7 @@ body {
   <div class="hdr">
     <div class="hdr-left">
       <svg class="hdr-logo" viewBox="0 0 140 46" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g fill="#002C5F">
+        <g fill="#FFFFFF">
           <text x="0" y="22" font-family="Arial, sans-serif" font-weight="900" font-size="24" letter-spacing="1">HYUNDAI</text>
           <rect x="0" y="27" width="112" height="2" />
           <text x="7" y="40" font-family="Arial, sans-serif" font-weight="800" font-size="10" letter-spacing="1.2">MOTOR GROUP</text>

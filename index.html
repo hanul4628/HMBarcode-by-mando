@@ -6,13 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HKMC Barcode">
-<meta name="theme-color" content="#002C5F"> <title>HKMC 2D Barcode Reader</title>
+<meta name="theme-color" content="#002C5F">
+<title>HKMC 2D Barcode Reader</title>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* HL Sky Blue Palette (메인 테마 컬러) */
+  /* HL Sky Blue Palette */
   --p:        #00B4ED;
   --p-mid:    #009acb;
   --p-light:  #4dd0f4;
@@ -52,28 +53,31 @@ body {
 .page.active { display:block; animation: pgIn .3s cubic-bezier(.4,0,.2,1); }
 @keyframes pgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
 
-/* ── HEADER (어두운 배경 + 흰색 로고 스타일) ── */
+/* ── HEADER ── */
 .hdr {
-  background: #002C5F; /* 현대 네이비 색상 적용 */
-  padding: 45px 16px 20px;
+  background: #002C5F;
+  /* 상단 패딩을 노치 영역(safe-area)을 고려해 동적 계산하여 정중앙에 위치하도록 수정 */
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px;
   display: flex; align-items: center; justify-content: center;
   position: sticky; top:0; z-index:30;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* 헤더 하단에 부드러운 그림자 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 .hdr-left {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   width: 100%;
 }
 .hdr-logo {
-  height: 44px; width: auto;
+  height: 40px; width: auto; /* 너무 크지 않고 안정적인 크기로 조절 */
 }
 .hdr-title { 
-  font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, 0.8); /* 텍스트를 연한 흰색으로 처리 */
+  font-size: 14px; font-weight: 800; color: rgba(255, 255, 255, 0.9); 
   letter-spacing: 1px; text-transform: uppercase;
 }
 
 /* ── CONTENT WRAPPER ── */
-.wrap { padding: 16px 16px 0; }
+.wrap { padding: 16px 16px 0; transition: padding 0.2s; }
+/* 결과 캡처 화면을 위해 상단 헤더가 사라졌을 때 노치 영역 침범을 막는 여백 클래스 */
+.wrap.no-hdr { padding-top: calc(24px + env(safe-area-inset-top, 0px)); }
 
 /* ── HERO CARD ── */
 .hero-card {
@@ -321,7 +325,7 @@ body {
 
 <div id="page-main" class="page active">
 
-  <div class="hdr">
+  <div class="hdr" id="mainHeader">
     <div class="hdr-left">
       <svg class="hdr-logo" viewBox="0 0 140 46" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g fill="#FFFFFF">
@@ -334,7 +338,7 @@ body {
     </div>
   </div>
 
-  <div class="wrap">
+  <div class="wrap" id="mainWrap">
 
     <div class="hero-card" id="heroCard">
       <div class="hero-label">바코드 분석기</div>
@@ -428,7 +432,7 @@ body {
 </div>
 
 <div id="page-history" class="page">
-  <div class="hdr">
+  <div class="hdr" style="padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px;">
     <div class="hdr-left">
       <div class="hdr-title" id="histPageTitle">바코드 이력</div>
     </div>
@@ -441,7 +445,7 @@ body {
 </div>
 
 <div id="page-language" class="page">
-  <div class="hdr">
+  <div class="hdr" style="padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 16px;">
     <div class="hdr-left">
       <div class="hdr-title" id="langPageTitle">언어 선택</div>
     </div>
@@ -495,7 +499,6 @@ function showPage(n){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page-'+n).classList.add('active');
   
-  // 메인 페이지로 돌아왔을 때 스캔 결과가 없다면(초기화 상태라면) Hero 카드 다시 표시
   if(n === 'main' && document.getElementById('barcodePanel').style.display === 'none') {
     document.getElementById('heroCard').style.display = '';
   }
@@ -520,9 +523,16 @@ function processBarcode(data){
   analyzer.setBarcodeData(data);
   var ok=analyzer.getCheckResult(), RD=analyzer.getResultData(), tc=analyzer.getCount();
 
-  // 스캔 완료 시 초기 상단 Hero 카드(스캔 대기 중) 숨김 처리
+  // 상단 로고 헤더 및 Hero 카드 숨김 처리 (캡처 화면 최적화)
+  var mainHeader = document.getElementById('mainHeader');
+  if(mainHeader) mainHeader.style.display = 'none';
+  
   var heroCard = document.getElementById('heroCard');
   if(heroCard) heroCard.style.display = 'none';
+  
+  // 헤더가 사라진 후 노치(safe-area) 영역 침범을 막기 위한 여백 추가
+  var mainWrap = document.getElementById('mainWrap');
+  if(mainWrap) mainWrap.classList.add('no-hdr');
 
   // barcode raw
   document.getElementById('barcodePanel').style.display='';

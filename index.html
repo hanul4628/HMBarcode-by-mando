@@ -57,21 +57,62 @@ body {
 .hdr {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 50px 16px 16px;
+  padding: 40px 16px 16px;
   display: flex; align-items: center; justify-content: center;
   position: sticky; top:0; z-index:30;
 }
 .hdr-left {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   width: 100%;
 }
 .hdr-logo {
-  height: 26px; width: auto;
+  height: 48px; width: auto; /* 로고 크기 대폭 확대 */
 }
-.hdr-title { font-size: 18px; font-weight: 900; color: var(--ink); letter-spacing: -.5px; }
+.hdr-title { font-size: 16px; font-weight: 800; color: var(--ink-2); letter-spacing: -.5px; }
 
 /* ── CONTENT WRAPPER ── */
 .wrap { padding: 16px 16px 0; }
+
+/* ── HERO CARD ── */
+.hero-card {
+  background: linear-gradient(135deg, var(--p) 0%, #0077b6 100%);
+  border-radius: 20px;
+  padding: 24px 20px 22px;
+  margin-bottom: 12px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 180, 237, 0.25);
+}
+.hero-card::before {
+  content:''; position:absolute; width:160px; height:160px; border-radius:50%; background: rgba(255,255,255,.1); top:-60px; right:-50px; animation: blobDrift 7s ease-in-out infinite;
+}
+.hero-card::after {
+  content:''; position:absolute; width:90px; height:90px; border-radius:50%; background: rgba(255,255,255,.08); bottom:-30px; left:24px; animation: blobDrift 9s ease-in-out infinite reverse;
+}
+@keyframes blobDrift { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.05)} }
+
+.hero-label  { font-size:12px; font-weight:700; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; position:relative; z-index:1; }
+.hero-value  { font-size:30px; font-weight:900; color:#fff; line-height:1; margin-bottom:6px; position:relative; z-index:1; letter-spacing:-.5px; }
+.hero-sub    { font-size:14px; color:rgba(255,255,255,.7); font-weight:500; position:relative; z-index:1; }
+
+.hero-deco {
+  position:absolute; right:20px; top:50%; transform:translateY(-50%);
+  z-index:1; opacity:.25;
+}
+.hero-deco svg { width:70px; height:70px; }
+
+.hero-btn {
+  margin-top:20px; width:100%; padding:14px 16px;
+  background:rgba(255,255,255,.15);
+  border:1.5px solid rgba(255,255,255,.3);
+  border-radius:14px; color:#fff;
+  font-family: inherit; font-size:16px; font-weight:800; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  position:relative; z-index:1;
+  backdrop-filter:blur(4px);
+  transition:background .15s;
+}
+.hero-btn:active { background:rgba(255,255,255,.25); transform:scale(.98); }
+.hero-btn svg { width:20px; height:20px; stroke:#fff; fill:none; stroke-width:2.5; }
 
 /* ── SECTION LABEL ── */
 .sec-label {
@@ -292,6 +333,39 @@ body {
   </div>
 
   <div class="wrap">
+
+    <div class="hero-card">
+      <div class="hero-label">바코드 분석기</div>
+      <div class="hero-value">스캔 대기 중</div>
+      <div class="hero-sub">아래 버튼을 눌러 스캔하세요</div>
+      <div class="hero-deco">
+        <svg viewBox="0 0 65 65" fill="none">
+          <rect x="4"  y="12" width="5"   height="41" rx="2" fill="white"><animate attributeName="height" values="41;30;41" dur="2.2s" repeatCount="indefinite" begin="0s"/><animate attributeName="y" values="12;18;12" dur="2.2s" repeatCount="indefinite" begin="0s"/></rect>
+          <rect x="13" y="9"  width="3"   height="47" rx="1.5" fill="white" opacity=".7"><animate attributeName="height" values="47;34;47" dur="1.9s" repeatCount="indefinite" begin=".15s"/><animate attributeName="y" values="9;16;9" dur="1.9s" repeatCount="indefinite" begin=".15s"/></rect>
+          <rect x="20" y="14" width="6"   height="37" rx="2" fill="white"><animate attributeName="height" values="37;50;37" dur="2.1s" repeatCount="indefinite" begin=".3s"/><animate attributeName="y" values="14;8;14" dur="2.1s" repeatCount="indefinite" begin=".3s"/></rect>
+          <rect x="30" y="10" width="2.5" height="45" rx="1.2" fill="white" opacity=".6"><animate attributeName="height" values="45;30;45" dur="2.5s" repeatCount="indefinite" begin=".1s"/><animate attributeName="y" values="10;18;10" dur="2.5s" repeatCount="indefinite" begin=".1s"/></rect>
+          <rect x="36" y="13" width="5"   height="39" rx="2" fill="white"><animate attributeName="height" values="39;52;39" dur="1.8s" repeatCount="indefinite" begin=".2s"/><animate attributeName="y" values="13;7;13" dur="1.8s" repeatCount="indefinite" begin=".2s"/></rect>
+          <rect x="45" y="9"  width="3"   height="47" rx="1.5" fill="white" opacity=".75"><animate attributeName="height" values="47;35;47" dur="2.3s" repeatCount="indefinite" begin=".35s"/><animate attributeName="y" values="9;15;9" dur="2.3s" repeatCount="indefinite" begin=".35s"/></rect>
+          <rect x="52" y="16" width="6"   height="33" rx="2" fill="white"><animate attributeName="height" values="33;46;33" dur="2s" repeatCount="indefinite" begin=".05s"/><animate attributeName="y" values="16;10;16" dur="2s" repeatCount="indefinite" begin=".05s"/></rect>
+          <rect x="2" y="0" width="61" height="2.5" rx="1" fill="url(#hg)" opacity=".9">
+            <animateTransform attributeName="transform" type="translate" values="0,10;0,52;0,10" dur="2s" repeatCount="indefinite"/>
+          </rect>
+          <defs>
+            <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="transparent"/>
+              <stop offset="35%"  stop-color="#b3eaf9"/>
+              <stop offset="50%"  stop-color="#ffffff"/>
+              <stop offset="65%"  stop-color="#b3eaf9"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <button class="hero-btn" onclick="startScan()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>바코드 스캔 시작</span>
+      </button>
+    </div>
 
     <div id="barcodePanel" style="display:none">
       <div class="sec-label">

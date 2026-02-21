@@ -336,6 +336,22 @@ body {
 
 .flash{position:fixed;inset:0;z-index:200;background:rgba(245,243,255,.8);pointer-events:none;animation:fadeOut .4s ease-out forwards}
 @keyframes fadeOut{from{opacity:1}to{opacity:0}}
+
+/* ── COPYRIGHT FOOTER ── */
+.copyright-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 16px;
+  padding-bottom: var(--safe-b);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-weight: 500;
+  letter-spacing: .3px;
+  background: var(--bg);
+
+}
 </style>
 </head>
 <body>
@@ -461,7 +477,7 @@ body {
       </button>
     </div>
 
-  </div><div class="bottom-nav">
+  </div><div class="copyright-bar">© 2026 hanulkim. All rights reserved.</div><div class="bottom-nav">
     <button class="nav-btn" onclick="showPage('language')" id="navLang">언어</button>
     <button class="nav-btn" onclick="showPage('history')" id="navHist">
       이력
@@ -481,7 +497,7 @@ body {
     </div>
   </div>
   <div class="wrap" id="historyContent"></div>
-  <div class="bottom-nav">
+  <div class="copyright-bar">© 2026 hanulkim. All rights reserved.</div><div class="bottom-nav">
     <button class="nav-btn" onclick="clearHistory()" id="histClear" style="color:var(--red);background:#fff0f0;border:1px solid #fecaca;">전체삭제</button>
     <button class="nav-btn primary" onclick="showPage('main')" id="histClose">닫기</button>
   </div>
@@ -501,7 +517,7 @@ body {
       </div>
     </div>
   </div>
-  <div class="bottom-nav">
+  <div class="copyright-bar">© 2026 hanulkim. All rights reserved.</div><div class="bottom-nav">
     <button class="nav-btn primary" onclick="showPage('main')" id="langClose">닫기</button>
   </div>
 </div>

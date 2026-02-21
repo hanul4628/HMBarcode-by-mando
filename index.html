@@ -13,7 +13,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   /* HL Sky Blue Palette */
@@ -481,50 +480,7 @@ body {
         <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
         <span id="rescanBtn">다시 스캔</span>
       </button>
-      /* ── 결과 이미지 저장 (화면 캡처 방식) ── */
-function saveResultImage(){
-  var RD = analyzer.getResultData();
-  if(!RD || RD.length === 0) return;
-
-  var targetArea = document.getElementById('mainWrap');
-  var rescanWrap = document.getElementById('rescanWrap');
-
-  // 캡처 전 현재 스크롤 위치 저장 및 뷰포트 최상단 이동 (이미지 잘림 방지)
-  var currentScroll = window.scrollY || document.documentElement.scrollTop;
-  window.scrollTo(0, 0);
-
-  // 캡처 화면에 버튼이 나오지 않도록 임시 숨김
-  if(rescanWrap) rescanWrap.style.display = 'none';
-
-  html2canvas(targetArea, {
-    backgroundColor: '#f9fafb',
-    scale: 2,
-    useCORS: true,
-    scrollY: 0,
-    windowY: 0,
-    logging: false
-  }).then(function(canvas) {
-    // 캡처 완료 후 버튼 복구 및 원래 스크롤 위치로 원복
-    if(rescanWrap) rescanWrap.style.display = 'flex';
-    window.scrollTo(0, currentScroll);
-
-    var now = new Date();
-    var ts = now.getFullYear().toString().slice(2)
-      + String(now.getMonth()+1).padStart(2,'0')
-      + String(now.getDate()).padStart(2,'0')
-      + '_' + String(now.getHours()).padStart(2,'0')
-      + String(now.getMinutes()).padStart(2,'0');
-
-    var link = document.createElement('a');
-    link.download = 'HKMC_' + ts + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  }).catch(function(error) {
-    console.error('캡처 중 오류 발생:', error);
-    if(rescanWrap) rescanWrap.style.display = 'flex';
-    window.scrollTo(0, currentScroll);
-  });
-}
+      <button onclick="saveResultImage()" id="saveImgBtn" style="flex:1;padding:16px;background:#10b981;color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(16,185,129,0.3)">
         <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="saveImgBtnText">저장</span>
       </button>

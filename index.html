@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#002C5F">
 <title>HKMC 2D Barcode Reader</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -395,9 +396,9 @@ body {
   <div class="wrap" id="mainWrap">
 
     <div class="hero-card" id="heroCard">
-      <div class="hero-label">바코드 분석기</div>
-      <div class="hero-value">스캔 대기 중</div>
-      <div class="hero-sub">아래 버튼을 눌러 스캔하세요</div>
+      <div class="hero-label" id="heroLabel">바코드 분석기</div>
+      <div class="hero-value" id="heroValue">스캔 대기 중</div>
+      <div class="hero-sub" id="heroSub">아래 버튼을 눌러 스캔하세요</div>
       <div class="hero-deco">
         <svg viewBox="0 0 65 65" fill="none">
           <rect x="4"  y="12" width="5"   height="41" rx="2" fill="white"><animate attributeName="height" values="41;30;41" dur="2.2s" repeatCount="indefinite" begin="0s"/><animate attributeName="y" values="12;18;12" dur="2.2s" repeatCount="indefinite" begin="0s"/></rect>
@@ -423,7 +424,7 @@ body {
       </div>
       <button class="hero-btn" onclick="startScan()">
         <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        <span>바코드 스캔 시작</span>
+        <span id="heroBtn">바코드 스캔 시작</span>
       </button>
     </div>
 
@@ -435,13 +436,13 @@ body {
     <div id="barcodePanel" style="display:none">
       <div class="sec-label">
         <svg viewBox="0 0 24 24"><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm2 0h14v14H5V5zm2 2h2v10H7V7zm4 0h2v10h-2V7zm4 0h2v10h-2V7z"/></svg>
-        바코드 데이터
+        <span id="secBarcodeData">바코드 데이터</span>
       </div>
       <div class="panel">
         <div class="panel-head">
           <div class="panel-head-l">
             <div class="panel-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5" rx=".5"/><rect x="16" y="3" width="5" height="5" rx=".5"/><rect x="3" y="16" width="5" height="5" rx=".5"/><line x1="12" y1="5" x2="12" y2="5.01"/><line x1="12" y1="11" x2="16" y2="11"/></svg></div>
-            <div><div class="panel-title" id="secBarcode">바코드 내용</div><div class="panel-sub">Raw data</div></div>
+            <div><div class="panel-title" id="secBarcode">바코드 내용</div><div class="panel-sub" id="rawDataSub">Raw data</div></div>
           </div>
           <div id="rawChip" class="panel-chip"></div>
         </div>
@@ -455,7 +456,7 @@ body {
     <div id="resultPanel" style="display:none">
       <div class="sec-label">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        분석 상세
+        <span id="secAnalysis">분석 상세</span>
       </div>
       <div class="panel">
         <div class="panel-head">
@@ -470,22 +471,25 @@ body {
       </div>
     </div>
 
-    <div id="rescanWrap" style="display:none;padding-bottom:4px">
-      <button onclick="startScan()" style="width:100%;padding:16px;background:var(--p);color:#fff;border:none;border-radius:14px;font-family: inherit;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(0, 180, 237, 0.3)">
+    <div id="rescanWrap" style="display:none;padding-bottom:4px;gap:10px;display:none;flex-direction:row;">
+      <button onclick="startScan()" style="flex:1;padding:16px;background:var(--p);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(0,180,237,0.3)">
         <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        다시 스캔
+        <span id="rescanBtn">다시 스캔</span>
+      </button>
+      <button onclick="saveResultImage()" id="saveImgBtn" style="flex:1;padding:16px;background:#10b981;color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(16,185,129,0.3)">
+        <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span id="saveImgBtnText">저장</span>
       </button>
     </div>
 
   </div><div class="copyright-bar">© 2026 hanulkim. All rights reserved.</div><div class="bottom-nav">
     <button class="nav-btn" onclick="showPage('language')" id="navLang">언어</button>
-    <button class="nav-btn" onclick="showPage('history')" id="navHist">
-      이력
+    <button class="nav-btn" onclick="showPage('history')" id="navHist"><span id="navHistText">이력</span>
       <span class="nav-dot" id="histDot" style="display:none"></span>
     </button>
     <button class="nav-btn primary" onclick="startScan()">
       <svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M16 7v10"/></svg>
-      스캔
+      <span id="navScan">스캔</span>
     </button>
   </div>
 </div>
@@ -514,6 +518,7 @@ body {
       <div style="background:#fff">
         <div class="lang-opt" onclick="setLang('ko')">🇰🇷 한국어<span id="chkKo" class="lang-check">✓</span></div>
         <div class="lang-opt" onclick="setLang('en')">🇺🇸 English<span id="chkEn" class="lang-check">✓</span></div>
+        <div class="lang-opt" onclick="setLang('es')">🇪🇸 Español<span id="chkEs" class="lang-check">✓</span></div>
       </div>
     </div>
   </div>
@@ -538,7 +543,7 @@ body {
   <div class="scan-footer">
     <button class="scan-stop" onclick="closeScanner()" id="stopScanBtn">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-      스캔 중지
+      <span id="stopScanSpan">스캔 중지</span>
     </button>
   </div>
 </div>
@@ -549,9 +554,10 @@ body {
 /* ── DataAnalyzer ── */
 // 공백 제거 로직(af 함수) 원본 유지
 function DataAnalyzer(){
+  var lastRaw="";
   var D=[],DL=[],RD=[],cnt=0,sel=0;
 
-  this.setBarcodeData=function(s){D=[];DL=[];RD=[];cnt=0;sel=0;af(s);sd();};
+  this.setBarcodeData=function(s){lastRaw=s;D=[];DL=[];RD=[];cnt=0;sel=0;af(s);sd();};
   this.setSelectIndex=function(i){sel=i;};
   this.getSelectedIndex=function(){return sel;};
   this.getCount=function(){return cnt;};
@@ -839,7 +845,28 @@ var LANG={
     trailer:'Trailer',
     close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',clearAll:'전체삭제',
     selectLang:'언어 선택',stopScan:'스캔 중지',
-    scanHint:'바코드를 프레임 안에 맞춰주세요'
+    scanHint:'바코드를 프레임 안에 맞춰주세요',
+    heroLabel:'바코드 분석기',heroValue:'스캔 대기 중',heroSub:'아래 버튼을 눌러 스캔하세요',
+    heroBtn:'바코드 스캔 시작',secBarcodeData:'바코드 데이터',secAnalysis:'분석 상세',
+    rawDataSub:'Raw data',rescanBtn:'다시 스캔',navScan:'스캔',navHistText:'이력',saveImg:'저장'
+  },
+  es:{
+    standard:'Estándar 2D H/KMC',
+    scan:'Escanear',history:'Historial',lang:'Idioma',
+    barcodeContent:'Contenido del código',
+    item:'Ítem',result:'Resultado',data:'Datos',
+    header:'Encabezado',
+    spec:'Esp.\nInfo',supplier:'Proveedor',partNo:'N° Pieza',seqCode:'Cód. Sec.',eoNo:'N° EO',
+    trace:'Traza-\nbilidad',prodDate:'F. Prod.',part4m:'4M Pieza',aOrAt:'A o @',traceNo:'N° Rastreo\n(7~)',
+    additional:'Adic-\nional',special:'Especial',initial:'Inicial',
+    etc:'ETC',supplierArea:'Área Prov.',
+    trailer:'Cierre',
+    close:'Cerrar',histTitle:'Historial',view:'Ver',noData:'Sin historial',clearAll:'Borrar todo',
+    selectLang:'Seleccionar idioma',stopScan:'Detener escaneo',
+    scanHint:'Alinee el código en el marco',
+    heroLabel:'Analizador',heroValue:'Esperando escaneo',heroSub:'Pulse el botón para escanear',
+    heroBtn:'Iniciar escaneo',secBarcodeData:'Datos del código',secAnalysis:'Detalle análisis',
+    rawDataSub:'Datos brutos',rescanBtn:'Escanear de nuevo',navScan:'Escanear',navHistText:'Historial',saveImg:'Guardar'
   },
   en:{
     standard:'H/KMC Part 2D Barcode Std.',
@@ -854,7 +881,10 @@ var LANG={
     trailer:'Trailer',
     close:'Close',histTitle:'History',view:'View',noData:'No history yet',clearAll:'Clear All',
     selectLang:'Select Language',stopScan:'Stop Scan',
-    scanHint:'Align barcode within the frame'
+    scanHint:'Align barcode within the frame',
+    heroLabel:'Barcode Analyzer',heroValue:'Waiting for scan',heroSub:'Press the button below to scan',
+    heroBtn:'Start Barcode Scan',secBarcodeData:'Barcode Data',secAnalysis:'Analysis Detail',
+    rawDataSub:'Raw data',rescanBtn:'Scan Again',navScan:'Scan',navHistText:'History',saveImg:'Save'
   }
 };
 
@@ -901,7 +931,18 @@ function setLang(lang){
     histClear:'clearAll',
     histClose:'close',
     langPageTitle:'selectLang',
-    stopScanBtn:'stopScan'
+    stopScanBtn:'stopScan',
+    heroLabel:'heroLabel',
+    heroValue:'heroValue',
+    heroSub:'heroSub',
+    heroBtn:'heroBtn',
+    secBarcodeData:'secBarcodeData',
+    secAnalysis:'secAnalysis',
+    rawDataSub:'rawDataSub',
+    rescanBtn:'rescanBtn',
+    navScan:'navScan',
+    navHistText:'navHistText',
+    saveImgBtnText:'saveImg'
   };
   for(var id in m){
     var el=document.getElementById(id);
@@ -913,6 +954,7 @@ function setLang(lang){
 
   document.getElementById('chkKo').style.display=lang==='ko'?'inline':'none';
   document.getElementById('chkEn').style.display=lang==='en'?'inline':'none';
+  document.getElementById('chkEs').style.display=lang==='es'?'inline':'none';
 
   // 언어 변경 시 결과 패널이 활성화되어 있으면 테이블 재렌더링
   var resultPanel=document.getElementById('resultPanel');
@@ -1024,6 +1066,193 @@ function renderTable(RD,L){
   var r40=gR('40');h+='<tr><td class="td-head">'+L.etc+'</td><td class="td-head">'+L.supplierArea+'</td><td class="td-center">'+(r40.r?bH(r40.r):'-')+'</td><td>'+dH(r40.d)+'</td></tr>';
   var rt=gR('50');h+='<tr><td colspan="2" class="td-head">'+L.trailer+'</td><td class="td-center">'+(rt.r?bH(rt.r):'-')+'</td><td>'+dH(rt.d)+'</td></tr>';
   h+='</tbody>';document.getElementById('resultTable').innerHTML=h;
+}
+
+
+/* ── 결과 이미지 저장 ── */
+function saveResultImage(){
+  var L = LANG[currentLang];
+  var RD = analyzer.getResultData();
+  if(!RD || RD.length === 0) return;
+
+  // 캔버스 생성
+  var W = 720, pad = 32;
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+
+  // 폰트 로딩 대기 후 그리기
+  document.fonts.ready.then(function(){
+    // --- 높이 계산 ---
+    var rowH = 48, headH = 80, tableRows = RD.length + 2; // +header +trailer
+    var rawText = analyzer.getRawBarcode ? analyzer.getRawBarcode() : '';
+    var rawLines = Math.ceil((rawText.length || 0) / 38) + 1;
+    var rawBoxH = Math.max(80, rawLines * 22 + 36);
+    var totalH = pad + 52 + 16 + rawBoxH + 20 + headH + tableRows * rowH + 20 + pad;
+    canvas.width = W;
+    canvas.height = totalH;
+
+    // 배경
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(0, 0, W, totalH);
+
+    var y = pad;
+    var font = "'Pretendard Variable', 'Apple SD Gothic Neo', sans-serif";
+
+    // 타이틀 헤더
+    ctx.fillStyle = '#1e40af';
+    roundRect(ctx, pad, y, W - pad*2, 48, 10);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px ' + font;
+    ctx.textBaseline = 'middle';
+    ctx.fillText('■ ' + (L.barcodeContent || '바코드 내용'), pad + 16, y + 24);
+    y += 48 + 14;
+
+    // Raw 바코드 박스
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, pad, y, W - pad*2, rawBoxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 15px ' + font;
+    var raw = rawText || '';
+    var chunkSize = 38;
+    var lineY = y + 24;
+    for(var i = 0; i < raw.length; i += chunkSize){
+      ctx.fillText(raw.slice(i, i + chunkSize), pad + 16, lineY);
+      lineY += 22;
+    }
+    y += rawBoxH + 18;
+
+    // 결과 테이블 헤더
+    ctx.fillStyle = '#1e40af';
+    roundRect(ctx, pad, y, W - pad*2, 48, 10);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px ' + font;
+    ctx.fillText('■ ' + (L.standard || 'H/KMC 2D Barcode Std.'), pad + 16, y + 24);
+    y += 48;
+
+    // 테이블 배경
+    var tableH = tableRows * rowH + 32;
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, pad, y, W - pad*2, tableH, 0, 0, 10, 10);
+    ctx.fill();
+
+    // 컬럼 헤더
+    var cols = [
+      { label: L.item || '구분', x: pad, w: 180 },
+      { label: L.result || '결과', x: pad + 180, w: 90 },
+      { label: L.data || '데이터', x: pad + 270, w: W - pad*2 - 270 }
+    ];
+    ctx.fillStyle = '#e8f0fe';
+    ctx.fillRect(pad, y, W - pad*2, 36);
+    ctx.fillStyle = '#1e40af';
+    ctx.font = 'bold 15px ' + font;
+    cols.forEach(function(col){ ctx.fillText(col.label, col.x + 10, y + 18); });
+    y += 36;
+
+    // 행 그리기
+    var rows = buildRows(RD, L);
+    rows.forEach(function(row, i){
+      var bg = i % 2 === 0 ? '#fff' : '#f8fafc';
+      ctx.fillStyle = bg;
+      ctx.fillRect(pad, y, W - pad*2, rowH);
+
+      ctx.fillStyle = '#374151';
+      ctx.font = '14px ' + font;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(row[0], pad + 10, y + rowH/2);
+
+      // OK / NG / - 뱃지
+      if(row[1] === 'OK'){
+        ctx.fillStyle = '#dbeafe';
+        roundRect(ctx, pad + 186, y + 10, 70, 28, 8);
+        ctx.fill();
+        ctx.fillStyle = '#1d4ed8';
+        ctx.font = 'bold 14px ' + font;
+        ctx.fillText('OK', pad + 186 + 23, y + rowH/2);
+      } else if(row[1] === 'NG'){
+        ctx.fillStyle = '#fee2e2';
+        roundRect(ctx, pad + 186, y + 10, 70, 28, 8);
+        ctx.fill();
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 14px ' + font;
+        ctx.fillText('NG', pad + 186 + 23, y + rowH/2);
+      } else {
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px ' + font;
+        ctx.fillText('-', pad + 186 + 28, y + rowH/2);
+      }
+
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 14px ' + font;
+      ctx.fillText(row[2] || '', pad + 276, y + rowH/2);
+
+      // 구분선
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(pad, y + rowH);
+      ctx.lineTo(pad + W - pad*2, y + rowH);
+      ctx.stroke();
+      y += rowH;
+    });
+
+    y += 20;
+
+
+
+    // 다운로드
+    var now = new Date();
+    var ts = now.getFullYear().toString().slice(2)
+      + String(now.getMonth()+1).padStart(2,'0')
+      + String(now.getDate()).padStart(2,'0')
+      + '_' + String(now.getHours()).padStart(2,'0')
+      + String(now.getMinutes()).padStart(2,'0');
+    var link = document.createElement('a');
+    link.download = 'HKMC_' + ts + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+function roundRect(ctx, x, y, w, h, tl, tr, br, bl){
+  if(tr === undefined) tr = tl;
+  if(br === undefined) br = tl;
+  if(bl === undefined) bl = tl;
+  ctx.beginPath();
+  ctx.moveTo(x + tl, y);
+  ctx.lineTo(x + w - tr, y); ctx.quadraticCurveTo(x+w, y, x+w, y+tr);
+  ctx.lineTo(x + w, y + h - br); ctx.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+  ctx.lineTo(x + bl, y + h); ctx.quadraticCurveTo(x, y+h, x, y+h-bl);
+  ctx.lineTo(x, y + tl); ctx.quadraticCurveTo(x, y, x+tl, y);
+  ctx.closePath();
+}
+
+function buildRows(RD, L){
+  function gR(c){var rw=null;RD.forEach(function(r){if(r[0]===c)rw=r;});return rw?[rw[1],rw[2]]:[null,''];}
+  var rows = [];
+  rows.push(['Header', gR('00')[0], gR('00')[1]]);
+  var specLabel = (L.spec||'사양정보').replace('\n',' ');
+  rows.push([specLabel+' / '+(L.supplier||'업체코드'), gR('10')[0], gR('10')[1]]);
+  rows.push([specLabel+' / '+(L.partNo||'부품번호'), gR('11')[0], gR('11')[1]]);
+  rows.push([specLabel+' / '+(L.seqCode||'서열코드'), gR('12')[0], gR('12')[1]]);
+  rows.push([specLabel+' / '+(L.eoNo||'EO번호'), gR('13')[0], gR('13')[1]]);
+  var traceLabel = (L.trace||'추적정보').replace('\n',' ');
+  rows.push([traceLabel+' / '+(L.prodDate||'생산일자'), gR('20')[0], gR('20')[1]]);
+  rows.push([traceLabel+' / '+(L.part4m||'부품4M'), gR('21')[0], gR('21')[1]]);
+  rows.push([traceLabel+' / '+(L.aOrAt||'A or @'), gR('22')[0], gR('22')[1]]);
+  rows.push([traceLabel+' / '+(L.traceNo||'추적번호').replace('\n',' '), gR('23')[0], gR('23')[1]]);
+  var addLabel = (L.additional||'부가정보').replace('\n',' ');
+  if(RD.find(function(r){return r[0]==='30';})) rows.push([addLabel+' / '+(L.special||'특이정보'), gR('30')[0], gR('30')[1]]);
+  if(RD.find(function(r){return r[0]==='31';})) rows.push([addLabel+' / '+(L.initial||'초도품구분'), gR('31')[0], gR('31')[1]]);
+  if(RD.find(function(r){return r[0]==='40';})) rows.push([(L.etc||'기타')+' / '+(L.supplierArea||'업체영역'), gR('40')[0], gR('40')[1]]);
+  rows.push(['Trailer', gR('50')[0], gR('50')[1]]);
+  return rows;
 }
 
 function renderHistory(){

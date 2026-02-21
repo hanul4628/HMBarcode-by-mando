@@ -1384,6 +1384,14 @@ function roundRect(ctx, x, y, w, h, tl, tr, br, bl){
   if(tr === undefined) tr = tl;
   if(br === undefined) br = tl;
   if(bl === undefined) bl = tl;
+
+  // 모서리 반경 최대값 제한 로직 추가
+  var maxR = Math.min(w / 2, h / 2);
+  tl = Math.min(tl, maxR);
+  tr = Math.min(tr, maxR);
+  br = Math.min(br, maxR);
+  bl = Math.min(bl, maxR);
+  
   ctx.beginPath();
   ctx.moveTo(x + tl, y);
   ctx.lineTo(x + w - tr, y); ctx.quadraticCurveTo(x+w, y, x+w, y+tr);

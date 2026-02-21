@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="HKMC Barcode">
 <meta name="theme-color" content="#002C5F">
 <title>HKMC 2D Barcode Reader</title>
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -507,11 +507,13 @@ body {
 
 <script>
 /* ── DataAnalyzer ── */
+// 공백 제거 로직(af 함수) 원본 유지
 function DataAnalyzer(){var D=[],DL=[],RD=[],cnt=0,sel=0;this.setBarcodeData=function(s){D=[];DL=[];RD=[];cnt=0;sel=0;af(s);sd();};this.setSelectIndex=function(i){sel=i;};this.getSelectedIndex=function(){return sel;};this.getFullViewData=function(){var r='';DL.forEach(function(row,i){if(i===sel)r+='<span class="highlight-yellow">';row.forEach(function(v){r+=cc(v);});if(i===sel)r+='</span>';});return r;};this.getCount=function(){return cnt;};this.getCheckResult=function(){return dc();};this.getResultData=function(){return RD;};function af(s){D=[];for(var i=0;i<s.length;i++)if(s.charCodeAt(i)!==32)D.push(s.charCodeAt(i));}function sd(){var r=[];D.forEach(function(v){r.push(v);if(v===35){DL.push(r);r=[];cnt++;}});if(r.length>0){DL.push(r);cnt++;}}function lp(n,w){n=n+'';return n.length>=w?n:new Array(w-n.length+1).join('0')+n;}function cc(s){if(s===29)return'<span class="gs"><sup>G</sup><sub>S</sub></span>';if(s===30)return'<span class="rs"><sup>R</sup><sub>S</sub></span>';if(s===4)return'<span class="eot"><sup>E</sup>O<sub>T</sub></span>';if(s===35)return'#<br>';if((s>=0&&s<=32)||s===127)return'&lt;0x'+lp(s.toString(16).toUpperCase(),2)+'&gt;';return String.fromCharCode(s);}function ad(a){var r='';if(typeof a==='number')return cc(a);if(a)a.forEach(function(v){r+=cc(v);});return r;}function hc(a,c){return a.some(function(v){return v===c;});}function vd(a){var s='';a.forEach(function(v){s+=String.fromCharCode(v);});if(!/[0-9]{2}[0-1]{1}[0-9]{1}[0-9]{2}/.test(s))return false;var ld=[31,28,31,30,31,30,31,31,30,31,30,31],y=Number('20'+s.substr(0,2)),m=Number(s.substr(2,2)),d=Number(s.substr(4,2));if(m>12||m===0||d===0)return false;if(y%4===0&&(y%100!==0||y%400===0)&&m===2)return d<=29;return d<=ld[m-1];}function ba(a){if(!a||(Array.isArray(a)&&a.length===0))return false;var c=function(v){return v<47||(v>57&&v<65)||(v>90&&v<97)||v>122;};if(typeof a==='number')return c(a);for(var i=0;i<a.length;i++)if(c(a[i]))return true;return false;}function sg(a){var r=[],row=[];a.forEach(function(v){if(v===29){r.push(row.slice(0));row=[];}else row.push(v);});return r;}function fb(a){var c=-1;a.some(function(v,i){if(v===29){c=i;return true;}return false;});return a.slice(0,c);}function lb(a){var c=-1;for(var x=a.length;x>0;x--)if(a[x]===29){c=x+1;break;}return a.slice(c);}function dd(t,ok,d,ri){if(sel===ri){if(t!=='00'&&t!=='50')if(ba(d))ok=false;RD.push([t,ok?'OK':'NG',d!=null?ad(d):null]);}}function dc(){var result=true;RD=[];DL.forEach(function(rd,ri){var e00=0,e10=0,e11=0,e12=0,e13=0,e20=0,e21=0,e22=0,e23=0,e30=0,e31=0,e40=0,e50=0;if(rd.length>=7){if(rd[0]===91&&rd[1]===41&&rd[2]===62&&rd[3]===30&&rd[4]===48&&rd[5]===54&&rd[6]===29){e00=1;dd('00',true,rd.slice(0,6),ri);}else if(rd[0]===91){var c=-1;rd.some(function(v,i){if(v===29){c=i;return true;}return false;});if(c>0){e00=1;dd('00',false,rd.slice(0,c),ri);}}}else result=false;if(rd[rd.length-1]===35||rd[rd.length-1]===4){e50=1;if(rd[rd.length-4]===29&&rd[rd.length-3]===30&&rd[rd.length-2]===4&&rd[rd.length-1]===35)dd('50',true,rd.slice(rd.length-3,rd.length-1),ri);else if(rd[rd.length-3]===29&&rd[rd.length-2]===30&&rd[rd.length-1]===4)dd('50',true,rd.slice(rd.length-2),ri);else{result=false;var c2=-1;for(var x=rd.length;x>0;x--)if(rd[x]===29){c2=x+1;break;}dd('50',false,rd.slice(c2),ri);}}sg(rd).forEach(function(pd){if(pd[0]===86){e10=1;dd('10',pd.length===5,pd.slice(1),ri);if(pd.length!==5)result=false;}else if(pd[0]===80){e11=1;if(pd.length>10&&pd.length<17){if(!hc(pd,45))dd('11',true,pd.slice(1),ri);else dd('11',false,pd.slice(1),ri);}else{result=false;dd('11',false,pd.slice(1),ri);}}else if(pd[0]===83){e12=1;if(pd.length>0&&pd.length<10)dd('12',true,pd.slice(1),ri);else{result=false;dd('12',false,pd.slice(1),ri);}}else if(pd[0]===69){e13=1;if((pd.length>8&&pd.length<11)||pd.length===1)dd('13',true,pd.slice(1),ri);else{result=false;dd('13',false,pd.slice(1),ri);}}else if(pd[0]===84){if(pd.length>6){e20=1;if(vd(pd.slice(1,7)))dd('20',true,pd.slice(1,7),ri);else{result=false;dd('20',false,pd.slice(1,7),ri);}}if(pd.length>7){e21=1;if(pd.length>10)dd('21',true,pd.slice(7,11),ri);else{result=false;dd('21',false,pd.slice(7),ri);}}if(pd.length>11){e22=1;if(pd[11]===64||pd[11]===65)dd('22',true,pd[11],ri);else{result=false;dd('22',false,pd[11],ri);}}if(pd.length>12){e23=1;dd('23',true,pd.slice(12),ri);}}else if(pd[0]>48&&pd[0]<58){e30=1;if(pd.length>1&&pd.length<42)dd('30',true,pd.slice(2),ri);else{result=false;dd('30',false,pd.slice(2),ri);}}else if(pd[0]===77){e31=1;if(pd.length===1)dd('31',true,pd[1],ri);else if(pd.length===2){if(pd[1]===89||pd[1]===78)dd('31',true,pd[1],ri);else{result=false;dd('31',false,pd[1],ri);}}else{result=false;dd('31',false,pd[1],ri);}}else if(pd[0]===67){e40=1;if(pd.length>0&&pd.length<52)dd('40',true,pd.slice(1),ri);else{result=false;dd('40',false,pd.slice(1),ri);}}});if(!e00){result=false;dd('00',false,fb(rd),ri);}if(!e10){result=false;dd('10',false,null,ri);}if(!e11){result=false;dd('11',false,null,ri);}if(!e12)dd('12',true,null,ri);if(!e20){result=false;dd('20',false,null,ri);}if(!e21){result=false;dd('21',false,null,ri);}if(!e22){result=false;dd('22',false,null,ri);}if(!e23){result=false;dd('23',false,null,ri);}if(!e50){result=false;dd('50',false,lb(rd),ri);}});return result;}}
 
 var LANG={ko:{standard:'H/KMC부품 2D 바코드 표준',scan:'스캔',history:'이력',lang:'언어',barcodeContent:'바코드 내용',item:'구분',result:'결과',data:'데이터',header:'Header',spec:'사양\n정보',supplier:'업체코드',partNo:'부품번호',seqCode:'서열코드',eoNo:'EO번호',trace:'추적\n정보',prodDate:'생산일자',part4m:'부품4M',aOrAt:'A or @',traceNo:'추적번호\n(7~)',additional:'부가\n정보',special:'특이정보',initial:'초도품구분',etc:'기타',supplierArea:'업체영역',trailer:'Trailer',close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',clearAll:'전체삭제',selectLang:'언어 선택',stopScan:'스캔 중지'},en:{standard:'H/KMC Part 2D Barcode Std.',scan:'Scan',history:'History',lang:'Language',barcodeContent:'Barcode Content',item:'Item',result:'Result',data:'Data',header:'Header',spec:'Spec\nInfo',supplier:'Supplier',partNo:'Part No.',seqCode:'Seq Code',eoNo:'EO No.',trace:'Trace-\nability',prodDate:'Prod Date',part4m:'Part 4M',aOrAt:'A or @',traceNo:'Trace No.\n(7~)',additional:'Addi-\ntional',special:'Special',initial:'Initial',etc:'ETC',supplierArea:'Sup. Area',trailer:'Trailer',close:'Close',histTitle:'History',view:'View',noData:'No history yet',clearAll:'Clear All',selectLang:'Select Language',stopScan:'Stop Scan'}};
 
 var currentLang='ko', analyzer=new DataAnalyzer(), historyList=[], html5QrCode=null;
+var isCameraTransitioning = false; // 카메라 상태 전이 제어 변수 추가
 
 /* ── Page nav ── */
 function showPage(n){
@@ -538,11 +540,17 @@ function setLang(lang){
   for(var id in m){var el=document.getElementById(id);if(el)el.textContent=L[m[id]];}
   document.getElementById('chkKo').style.display=lang==='ko'?'inline':'none';
   document.getElementById('chkEn').style.display=lang==='en'?'inline':'none';
+  
+  // 언어 변경 시 결과 패널이 활성화되어 있으면 테이블을 다시 렌더링 (UI 미갱신 오류 정정)
+  if(document.getElementById('resultPanel').style.display !== 'none') {
+    renderTable(analyzer.getResultData(), L);
+  }
   showPage('main');
 }
 
 /* ── Process barcode ── */
-function processBarcode(data){
+// 이력 중복 저장을 막기 위해 skipHistory 파라미터 추가
+function processBarcode(data, skipHistory = false){
   var L=LANG[currentLang];
   analyzer.setBarcodeData(data);
   var ok=analyzer.getCheckResult(), RD=analyzer.getResultData(), tc=analyzer.getCount();
@@ -573,12 +581,15 @@ function processBarcode(data){
 
   document.getElementById('rescanWrap').style.display='';
 
-  var now=new Date();
-  var ds=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  historyList.unshift({date:ds,barcode:data,okng:ok?'OK':'NG'});
-  if(historyList.length>50)historyList=historyList.slice(0,50);
-  var dot=document.getElementById('histDot');
-  if(dot){dot.style.display='flex';dot.textContent=historyList.length>9?'9+':historyList.length;}
+  // 새로운 스캔일 경우에만 이력에 추가
+  if(!skipHistory) {
+    var now=new Date();
+    var ds=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    historyList.unshift({date:ds,barcode:data,okng:ok?'OK':'NG'});
+    if(historyList.length>50)historyList=historyList.slice(0,50);
+    var dot=document.getElementById('histDot');
+    if(dot){dot.style.display='flex';dot.textContent=historyList.length>9?'9+':historyList.length;}
+  }
 
   var fl=document.getElementById('flashEffect');fl.style.display='';setTimeout(function(){fl.style.display='none';},400);
   showPage('main');
@@ -623,17 +634,44 @@ function renderHistory(){
   var h='';historyList.forEach(function(it,i){h+='<div class="hist-item" style="animation-delay:'+(i*.04)+'s"><span class="hist-badge '+(it.okng==='OK'?'ok':'ng')+'">'+it.okng+'</span><div class="hist-meta"><div class="hist-date">'+it.date+'</div><div class="hist-code">'+it.barcode+'</div></div><button onclick="viewHistory('+i+')" class="hist-view">'+L.view+'</button></div>';});
   el.innerHTML=h;
 }
-function viewHistory(i){processBarcode(historyList[i].barcode);}
+
+// 이력 조회 시 skipHistory 인자를 true로 전달하여 중복 저장을 차단
+function viewHistory(i){
+  processBarcode(historyList[i].barcode, true);
+}
+
 function clearHistory(){if(confirm(currentLang==='ko'?'전체 이력을 삭제하시겠습니까?':'Clear all history?')){historyList=[];var dot=document.getElementById('histDot');if(dot)dot.style.display='none';renderHistory();}}
 
+// 스캐너 시작 제어 (비동기 충돌 방지)
 function startScan(){
+  if(isCameraTransitioning) return;
   document.getElementById('scanOverlay').classList.add('open');
   if(!html5QrCode)html5QrCode=new Html5Qrcode("qr-reader");
-  html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},function(dt){closeScanner();processBarcode(dt);},function(){}).catch(function(){alert(currentLang==='ko'?'카메라 접근에 실패했습니다.':'Camera access failed.');closeScanner();});
+  isCameraTransitioning = true;
+  html5QrCode.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},function(dt){
+    closeScanner().then(() => processBarcode(dt));
+  },function(){}).then(() => {
+    isCameraTransitioning = false;
+  }).catch(function(){
+    alert(currentLang==='ko'?'카메라 접근에 실패했습니다.':'Camera access failed.');
+    closeScanner();
+    isCameraTransitioning = false;
+  });
 }
+
+// 스캐너 종료 제어 (프로미스 반환 추가)
 function closeScanner(){
-  if(html5QrCode&&html5QrCode.isScanning)html5QrCode.stop().then(function(){html5QrCode.clear();});
   document.getElementById('scanOverlay').classList.remove('open');
+  if(html5QrCode && html5QrCode.isScanning){
+    isCameraTransitioning = true;
+    return html5QrCode.stop().then(function(){
+      html5QrCode.clear();
+      isCameraTransitioning = false;
+    }).catch(function(){
+      isCameraTransitioning = false;
+    });
+  }
+  return Promise.resolve();
 }
 
 setLang('ko');

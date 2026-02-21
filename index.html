@@ -10,7 +10,6 @@
 <meta name="theme-color" content="#002C5F">
 <title>HKMC 2D Barcode Reader</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -1113,7 +1112,7 @@ function saveResultImage(){
   var rows = buildRows(RD, L);
 
   var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d', {alpha: false});
 
   document.fonts.ready.then(function(){
     // 높이 계산
@@ -1139,9 +1138,10 @@ function saveResultImage(){
     canvas.height = totalH;
     ctx.textBaseline = 'middle';
 
-    // 전체 배경
+    // 전체 배경 (alpha:false 이므로 완전 불투명)
     ctx.fillStyle = C.bg;
     ctx.fillRect(0, 0, W, totalH);
+    ctx.fillRect(0, 0, W, totalH); // 한 번 더 확실하게
 
     var y = pad;
 

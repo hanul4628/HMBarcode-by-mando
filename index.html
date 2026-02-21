@@ -236,10 +236,15 @@ body {
 
 /* ── HISTORY ITEMS ── */
 .hist-empty { text-align:center; padding:60px 20px; }
-.hist-empty-icon { width:70px; height:70px; border-radius:20px; background:var(--p-ghost); margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
-.hist-empty-icon svg { width:32px; height:32px; stroke:var(--p); fill:none; stroke-width:2; }
-.hist-empty-title { font-size:17px; font-weight:800; color:var(--ink); margin-bottom:6px; }
-.hist-empty-sub   { font-size:14px; color:var(--ink-3); font-weight:600; }
+.hist-empty-illust { position:relative; width:140px; height:140px; margin:0 auto 28px; }
+.hist-empty-illust .he-bg { position:absolute; inset:0; border-radius:50%; background:linear-gradient(135deg,#e0f0ff,#f0f9ff); }
+.hist-empty-illust .he-svg-wrap { position:absolute; inset:0; }
+.hist-empty-illust .he-svg-wrap .he-ring { transform-origin:70px 70px; animation:heSpin 12s linear infinite; }
+.hist-empty-illust .he-icon { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:72px; height:72px; }
+.he-dot { animation:hePulse 2s ease-in-out infinite; }
+@keyframes heSpin  { to { transform:rotate(360deg); } }
+@keyframes hePulse { 0%,100%{opacity:.2;r:4} 50%{opacity:.8;r:6} }
+.hist-empty-title { font-size:18px; font-weight:800; color:var(--ink); margin-bottom:8px; }
 
 .hist-item {
   background:var(--surface); border:1px solid var(--border);
@@ -471,7 +476,7 @@ body {
       </div>
     </div>
 
-    <div id="rescanWrap" style="display:none;padding-bottom:4px;gap:10px;display:none;flex-direction:row;">
+    <div id="rescanWrap" style="display:none;padding-bottom:4px;gap:10px;flex-direction:row;">
       <button onclick="startScan()" style="flex:1;padding:16px;background:var(--p);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(0,180,237,0.3)">
         <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
         <span id="rescanBtn">다시 스캔</span>
@@ -563,6 +568,7 @@ function DataAnalyzer(){
   this.getCount=function(){return cnt;};
   this.getCheckResult=function(){return dc();};
   this.getResultData=function(){return RD;};
+  this.getRawBarcode=function(){return lastRaw||'';};
 
   this.getFullViewData=function(){
     var r='';
@@ -843,7 +849,8 @@ var LANG={
     additional:'부가\n정보',special:'특이정보',initial:'초도품구분',
     etc:'기타',supplierArea:'업체영역',
     trailer:'Trailer',
-    close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',clearAll:'전체삭제',
+    close:'닫기',histTitle:'바코드 이력',view:'보기',noData:'이력이 없습니다',
+    emptyTitle:'스캔 이력 없음',clearAll:'전체삭제',
     selectLang:'언어 선택',stopScan:'스캔 중지',
     scanHint:'바코드를 프레임 안에 맞춰주세요',
     heroLabel:'바코드 분석기',heroValue:'스캔 대기 중',heroSub:'아래 버튼을 눌러 스캔하세요',
@@ -861,7 +868,8 @@ var LANG={
     additional:'Adic-\nional',special:'Especial',initial:'Inicial',
     etc:'ETC',supplierArea:'Área Prov.',
     trailer:'Cierre',
-    close:'Cerrar',histTitle:'Historial',view:'Ver',noData:'Sin historial',clearAll:'Borrar todo',
+    close:'Cerrar',histTitle:'Historial',view:'Ver',noData:'Sin historial',
+    emptyTitle:'Sin historial de escaneo',clearAll:'Borrar todo',
     selectLang:'Seleccionar idioma',stopScan:'Detener escaneo',
     scanHint:'Alinee el código en el marco',
     heroLabel:'Analizador',heroValue:'Esperando escaneo',heroSub:'Pulse el botón para escanear',
@@ -879,7 +887,8 @@ var LANG={
     additional:'Addi-\ntional',special:'Special',initial:'Initial',
     etc:'ETC',supplierArea:'Sup. Area',
     trailer:'Trailer',
-    close:'Close',histTitle:'History',view:'View',noData:'No history yet',clearAll:'Clear All',
+    close:'Close',histTitle:'History',view:'View',noData:'No history yet',
+    emptyTitle:'No Scan History',clearAll:'Clear All',
     selectLang:'Select Language',stopScan:'Stop Scan',
     scanHint:'Align barcode within the frame',
     heroLabel:'Barcode Analyzer',heroValue:'Waiting for scan',heroSub:'Press the button below to scan',
@@ -942,7 +951,8 @@ function setLang(lang){
     rescanBtn:'rescanBtn',
     navScan:'navScan',
     navHistText:'navHistText',
-    saveImgBtnText:'saveImg'
+    saveImgBtnText:'saveImg',
+    emptyHistTitle:'emptyTitle'
   };
   for(var id in m){
     var el=document.getElementById(id);
@@ -1009,7 +1019,7 @@ function processBarcode(data, skipHistory){
   // 결과 테이블
   document.getElementById('resultPanel').style.display='';
   renderTable(RD,L);
-  document.getElementById('rescanWrap').style.display='';
+  document.getElementById('rescanWrap').style.display='flex';
 
   // 이력 저장
   if(!skipHistory){
@@ -1075,136 +1085,286 @@ function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
 
-  // 캔버스 생성
-  var W = 720, pad = 32;
+  var W = 750, pad = 20;
+  var font = "'Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+  var monoFont = "'JetBrains Mono','Courier New',monospace";
+
+  // 색상 (실제 앱과 동일)
+  var C = {
+    bg:       '#f9fafb',
+    surface:  '#ffffff',
+    border:   '#e5e7eb',
+    ink:      '#111827',
+    ink2:     '#374151',
+    ink3:     '#6b7280',
+    blue:     '#1e40af',
+    blueLt:   '#dbeafe',
+    blueTx:   '#1d4ed8',
+    green:    '#10b981',
+    greenBg:  '#d1fae5',
+    red:      '#ef4444',
+    redBg:    '#fee2e2',
+    amber:    '#d97706',
+    amberBg:  '#fef9c3',
+    thead:    '#f3f4f6'
+  };
+
+  var rawText = (analyzer.getRawBarcode ? analyzer.getRawBarcode() : '').replace(/<[^>]*>/g,'');
+  var rows = buildRows(RD, L);
+
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
 
-  // 폰트 로딩 대기 후 그리기
   document.fonts.ready.then(function(){
-    // --- 높이 계산 ---
-    var rowH = 48, headH = 80, tableRows = RD.length + 2; // +header +trailer
-    var rawText = analyzer.getRawBarcode ? analyzer.getRawBarcode() : '';
-    var rawLines = Math.ceil((rawText.length || 0) / 38) + 1;
-    var rawBoxH = Math.max(80, rawLines * 22 + 36);
-    var totalH = pad + 52 + 16 + rawBoxH + 20 + headH + tableRows * rowH + 20 + pad;
+    // 높이 계산
+    var secLabelH = 32;
+    var panelHeadH = 62;
+    var rawLineH = 22, rawPad = 20;
+    var rawLines = rawText ? Math.ceil(rawText.length / 42) : 1;
+    var rawBoxH = rawLines * rawLineH + rawPad * 2;
+    var rowH = 46;
+    var thH = 38;
+    var tableBodyH = rows.length * rowH;
+    var totalH = pad
+      + secLabelH + 8           // 섹션 라벨
+      + panelHeadH               // 패널 헤더 (바코드 내용)
+      + rawBoxH                  // raw 텍스트 박스
+      + 16                       // gap
+      + secLabelH + 8            // 섹션 라벨
+      + panelHeadH               // 패널 헤더 (분석 결과)
+      + thH + tableBodyH         // 테이블
+      + pad;
+
     canvas.width = W;
     canvas.height = totalH;
+    ctx.textBaseline = 'middle';
 
-    // 배경
-    ctx.fillStyle = '#f1f5f9';
+    // 전체 배경
+    ctx.fillStyle = C.bg;
     ctx.fillRect(0, 0, W, totalH);
 
     var y = pad;
-    var font = "'Pretendard Variable', 'Apple SD Gothic Neo', sans-serif";
 
-    // 타이틀 헤더
-    ctx.fillStyle = '#1e40af';
-    roundRect(ctx, pad, y, W - pad*2, 48, 10);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px ' + font;
-    ctx.textBaseline = 'middle';
-    ctx.fillText('■ ' + (L.barcodeContent || '바코드 내용'), pad + 16, y + 24);
-    y += 48 + 14;
+    /* ── 섹션 라벨: 바코드 내용 ── */
+    ctx.font = 'bold 13px ' + font;
+    ctx.fillStyle = C.ink3;
+    ctx.textAlign = 'left';
+    ctx.fillText((L.secBarcodeData || '바코드 데이터'), pad + 2, y + 11);
+    // 라인
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1.5;
+    var labelW = ctx.measureText(L.secBarcodeData || '바코드 데이터').width + 12;
+    ctx.beginPath();
+    ctx.moveTo(pad + labelW, y + 10);
+    ctx.lineTo(W - pad, y + 10);
+    ctx.stroke();
+    y += secLabelH + 8;
 
-    // Raw 바코드 박스
-    ctx.fillStyle = '#fff';
-    roundRect(ctx, pad, y, W - pad*2, rawBoxH, 10);
+    /* ── 바코드 내용 패널 카드 ── */
+    // 카드 배경
+    ctx.fillStyle = C.surface;
+    roundRect(ctx, pad, y, W - pad*2, panelHeadH + rawBoxH, 14);
     ctx.fill();
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = C.border;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = 'bold 15px ' + font;
-    var raw = rawText || '';
-    var chunkSize = 38;
-    var lineY = y + 24;
-    for(var i = 0; i < raw.length; i += chunkSize){
-      ctx.fillText(raw.slice(i, i + chunkSize), pad + 16, lineY);
-      lineY += 22;
-    }
-    y += rawBoxH + 18;
-
-    // 결과 테이블 헤더
-    ctx.fillStyle = '#1e40af';
-    roundRect(ctx, pad, y, W - pad*2, 48, 10);
+    // 패널 헤더 영역
+    ctx.fillStyle = C.surface;
+    roundRect(ctx, pad, y, W - pad*2, panelHeadH, 14, 14, 0, 0);
     ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px ' + font;
-    ctx.fillText('■ ' + (L.standard || 'H/KMC 2D Barcode Std.'), pad + 16, y + 24);
-    y += 48;
+    // 하단 구분선
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, y + panelHeadH);
+    ctx.lineTo(W - pad, y + panelHeadH);
+    ctx.stroke();
 
-    // 테이블 배경
-    var tableH = tableRows * rowH + 32;
-    ctx.fillStyle = '#fff';
-    roundRect(ctx, pad, y, W - pad*2, tableH, 0, 0, 10, 10);
+    // 아이콘 박스 (파란 배경)
+    var iconX = pad + 16, iconY = y + 12;
+    ctx.fillStyle = '#eff6ff';
+    roundRect(ctx, iconX, iconY, 38, 38, 10);
     ctx.fill();
-
-    // 컬럼 헤더
-    var cols = [
-      { label: L.item || '구분', x: pad, w: 180 },
-      { label: L.result || '결과', x: pad + 180, w: 90 },
-      { label: L.data || '데이터', x: pad + 270, w: W - pad*2 - 270 }
-    ];
-    ctx.fillStyle = '#e8f0fe';
-    ctx.fillRect(pad, y, W - pad*2, 36);
-    ctx.fillStyle = '#1e40af';
-    ctx.font = 'bold 15px ' + font;
-    cols.forEach(function(col){ ctx.fillText(col.label, col.x + 10, y + 18); });
-    y += 36;
-
-    // 행 그리기
-    var rows = buildRows(RD, L);
-    rows.forEach(function(row, i){
-      var bg = i % 2 === 0 ? '#fff' : '#f8fafc';
-      ctx.fillStyle = bg;
-      ctx.fillRect(pad, y, W - pad*2, rowH);
-
-      ctx.fillStyle = '#374151';
-      ctx.font = '14px ' + font;
-      ctx.textBaseline = 'middle';
-      ctx.fillText(row[0], pad + 10, y + rowH/2);
-
-      // OK / NG / - 뱃지
-      if(row[1] === 'OK'){
-        ctx.fillStyle = '#dbeafe';
-        roundRect(ctx, pad + 186, y + 10, 70, 28, 8);
-        ctx.fill();
-        ctx.fillStyle = '#1d4ed8';
-        ctx.font = 'bold 14px ' + font;
-        ctx.fillText('OK', pad + 186 + 23, y + rowH/2);
-      } else if(row[1] === 'NG'){
-        ctx.fillStyle = '#fee2e2';
-        roundRect(ctx, pad + 186, y + 10, 70, 28, 8);
-        ctx.fill();
-        ctx.fillStyle = '#dc2626';
-        ctx.font = 'bold 14px ' + font;
-        ctx.fillText('NG', pad + 186 + 23, y + rowH/2);
-      } else {
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = '14px ' + font;
-        ctx.fillText('-', pad + 186 + 28, y + rowH/2);
-      }
-
-      ctx.fillStyle = '#1e293b';
-      ctx.font = 'bold 14px ' + font;
-      ctx.fillText(row[2] || '', pad + 276, y + rowH/2);
-
-      // 구분선
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 0.8;
-      ctx.beginPath();
-      ctx.moveTo(pad, y + rowH);
-      ctx.lineTo(pad + W - pad*2, y + rowH);
-      ctx.stroke();
-      y += rowH;
+    // 바코드 미니 아이콘 (막대)
+    ctx.fillStyle = C.blueTx;
+    var bars = [{x:7,w:3},{x:12,w:2},{x:16,w:4},{x:22,w:2},{x:26,w:3}];
+    bars.forEach(function(b){
+      ctx.fillRect(iconX+b.x, iconY+8, b.w, 22);
     });
 
-    y += 20;
+    // 타이틀
+    ctx.font = 'bold 16px ' + font;
+    ctx.fillStyle = C.ink;
+    ctx.textAlign = 'left';
+    ctx.fillText((L.barcodeContent || '바코드 내용'), iconX + 48, y + 24);
+    ctx.font = '13px ' + font;
+    ctx.fillStyle = C.ink3;
+    ctx.fillText('Raw data', iconX + 48, y + 44);
 
+    // Raw 텍스트
+    y += panelHeadH;
+    ctx.font = 'bold 14px ' + monoFont;
+    ctx.fillStyle = C.amber;
+    var chunkSize = 42;
+    var lineY = y + rawPad;
+    for(var i = 0; i < rawText.length; i += chunkSize){
+      ctx.fillText(rawText.slice(i, i + chunkSize), pad + 16, lineY + rawLineH/2);
+      lineY += rawLineH;
+    }
+    if(!rawText){
+      ctx.fillStyle = C.ink3;
+      ctx.font = '14px ' + font;
+      ctx.fillText('-', pad + 16, y + rawBoxH/2);
+    }
+    y += rawBoxH + 16;
 
+    /* ── 섹션 라벨: 분석 상세 ── */
+    ctx.font = 'bold 13px ' + font;
+    ctx.fillStyle = C.ink3;
+    ctx.textAlign = 'left';
+    ctx.fillText((L.secAnalysis || '분석 상세'), pad + 2, y + 11);
+    var labelW2 = ctx.measureText(L.secAnalysis || '분석 상세').width + 12;
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad + labelW2, y + 10);
+    ctx.lineTo(W - pad, y + 10);
+    ctx.stroke();
+    y += secLabelH + 8;
+
+    /* ── 분석 결과 패널 카드 ── */
+    var tableTotalH = panelHeadH + thH + tableBodyH;
+    ctx.fillStyle = C.surface;
+    roundRect(ctx, pad, y, W - pad*2, tableTotalH, 14);
+    ctx.fill();
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 패널 헤더
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, y + panelHeadH);
+    ctx.lineTo(W - pad, y + panelHeadH);
+    ctx.stroke();
+
+    // 아이콘 박스 (초록 배경)
+    var iconX2 = pad + 16, iconY2 = y + 12;
+    ctx.fillStyle = '#ecfdf5';
+    roundRect(ctx, iconX2, iconY2, 38, 38, 10);
+    ctx.fill();
+    // 체크 아이콘
+    ctx.strokeStyle = C.green;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(iconX2+10, iconY2+19);
+    ctx.lineTo(iconX2+17, iconY2+26);
+    ctx.lineTo(iconX2+28, iconY2+13);
+    ctx.stroke();
+
+    ctx.font = 'bold 16px ' + font;
+    ctx.fillStyle = C.ink;
+    ctx.textAlign = 'left';
+    ctx.fillText((L.result || '분석 결과'), iconX2 + 48, y + 24);
+    ctx.font = '13px ' + font;
+    ctx.fillStyle = C.ink3;
+    ctx.fillText((L.standard || 'H/KMC 부품 2D 바코드 표준'), iconX2 + 48, y + 44);
+    y += panelHeadH;
+
+    /* ── 테이블 ── */
+    // 컬럼 너비 (실제 앱 비율 맞춤)
+    var col1W = 200, col2W = 90, col3W = W - pad*2 - col1W - col2W;
+    var tX = pad;
+
+    // 헤더 행
+    ctx.fillStyle = C.thead;
+    ctx.fillRect(tX, y, W - pad*2, thH);
+    ctx.font = 'bold 14px ' + font;
+    ctx.fillStyle = C.ink2;
+    ctx.textAlign = 'center';
+    ctx.fillText(L.item || '구분',    tX + col1W/2,           y + thH/2);
+    ctx.fillText(L.result || '결과',  tX + col1W + col2W/2,   y + thH/2);
+    ctx.textAlign = 'left';
+    ctx.fillText(L.data || '데이터',  tX + col1W + col2W + 12, y + thH/2);
+    y += thH;
+
+    // 데이터 행
+    rows.forEach(function(row, i){
+      var bg = i % 2 === 0 ? C.surface : '#f9fafb';
+      ctx.fillStyle = bg;
+      ctx.fillRect(tX, y, W - pad*2, rowH);
+
+      // 구분 텍스트
+      ctx.font = '13.5px ' + font;
+      ctx.fillStyle = C.ink2;
+      ctx.textAlign = 'center';
+      // 줄바꿈 처리
+      var itemLines = row[0].split('/');
+      if(itemLines.length > 1){
+        ctx.font = 'bold 12px ' + font;
+        ctx.fillText(itemLines[0].trim(), tX + col1W/2, y + rowH/2 - 8);
+        ctx.font = '12px ' + font;
+        ctx.fillStyle = C.ink3;
+        ctx.fillText(itemLines[1].trim(), tX + col1W/2, y + rowH/2 + 8);
+      } else {
+        ctx.font = 'bold 13px ' + font;
+        ctx.fillStyle = C.ink;
+        ctx.fillText(row[0], tX + col1W/2, y + rowH/2);
+      }
+
+      // OK / NG / - 뱃지 (실제 앱과 동일: 초록/빨강 pill)
+      var badgeX = tX + col1W + (col2W - 52)/2;
+      var badgeY = y + (rowH - 24)/2;
+      if(row[1] === 'OK'){
+        ctx.fillStyle = C.greenBg;
+        roundRect(ctx, badgeX, badgeY, 52, 24, 999);
+        ctx.fill();
+        ctx.font = 'bold 12px ' + font;
+        ctx.fillStyle = C.green;
+        ctx.textAlign = 'center';
+        ctx.fillText('OK', badgeX + 26, badgeY + 12);
+      } else if(row[1] === 'NG'){
+        ctx.fillStyle = C.redBg;
+        roundRect(ctx, badgeX, badgeY, 52, 24, 999);
+        ctx.fill();
+        ctx.font = 'bold 12px ' + font;
+        ctx.fillStyle = C.red;
+        ctx.textAlign = 'center';
+        ctx.fillText('NG', badgeX + 26, badgeY + 12);
+      } else {
+        ctx.font = '14px ' + font;
+        ctx.fillStyle = C.ink3;
+        ctx.textAlign = 'center';
+        ctx.fillText('-', tX + col1W + col2W/2, y + rowH/2);
+      }
+
+      // 데이터 값
+      if(row[2]){
+        ctx.font = 'bold 14px ' + monoFont;
+        ctx.fillStyle = C.ink;
+        ctx.textAlign = 'left';
+        ctx.fillText(row[2], tX + col1W + col2W + 12, y + rowH/2);
+      }
+
+      // 구분선
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(tX, y + rowH);
+      ctx.lineTo(tX + W - pad*2, y + rowH);
+      ctx.stroke();
+      // 세로 구분선
+      ctx.beginPath();
+      ctx.moveTo(tX + col1W, y); ctx.lineTo(tX + col1W, y + rowH); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tX + col1W + col2W, y); ctx.lineTo(tX + col1W + col2W, y + rowH); ctx.stroke();
+
+      y += rowH;
+    });
 
     // 다운로드
     var now = new Date();
@@ -1234,7 +1394,7 @@ function roundRect(ctx, x, y, w, h, tl, tr, br, bl){
 }
 
 function buildRows(RD, L){
-  function gR(c){var rw=null;RD.forEach(function(r){if(r[0]===c)rw=r;});return rw?[rw[1],rw[2]]:[null,''];}
+  function gR(c){var rw=null;RD.forEach(function(r){if(r[0]===c)rw=r;});return rw?[rw[1],(rw[2]||'').replace(/<[^>]*>/g,'')]:[null,''];}
   var rows = [];
   rows.push(['Header', gR('00')[0], gR('00')[1]]);
   var specLabel = (L.spec||'사양정보').replace('\n',' ');
@@ -1257,7 +1417,7 @@ function buildRows(RD, L){
 
 function renderHistory(){
   var el=document.getElementById('historyContent'),L=LANG[currentLang];
-  if(historyList.length===0){el.innerHTML='<div class="hist-empty"><div class="hist-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M10 14l2 2 4-4"/><path d="M14 14l-4-4"/></svg></div><div class="hist-empty-title">이력 없음</div><div class="hist-empty-sub">'+L.noData+'</div></div>';return;}
+  if(historyList.length===0){el.innerHTML='<div class="hist-empty"><div class="hist-empty-illust"><div class="he-bg"></div><svg class="he-svg-wrap" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg"><g class="he-ring"><circle cx="70" cy="70" r="58" fill="none" stroke="#bfdbfe" stroke-width="2" stroke-dasharray="6 5"/><circle cx="70" cy="12" r="5" fill="#60a5fa"><animate attributeName="opacity" values="0.2;0.85;0.2" dur="2s" begin="0s" repeatCount="indefinite"/><animate attributeName="r" values="4;6;4" dur="2s" begin="0s" repeatCount="indefinite"/></circle><circle cx="70" cy="128" r="5" fill="#60a5fa"><animate attributeName="opacity" values="0.2;0.85;0.2" dur="2s" begin="0.5s" repeatCount="indefinite"/><animate attributeName="r" values="4;6;4" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="12" cy="70" r="5" fill="#60a5fa"><animate attributeName="opacity" values="0.2;0.85;0.2" dur="2s" begin="1s" repeatCount="indefinite"/><animate attributeName="r" values="4;6;4" dur="2s" begin="1s" repeatCount="indefinite"/></circle><circle cx="128" cy="70" r="5" fill="#60a5fa"><animate attributeName="opacity" values="0.2;0.85;0.2" dur="2s" begin="1.5s" repeatCount="indefinite"/><animate attributeName="r" values="4;6;4" dur="2s" begin="1.5s" repeatCount="indefinite"/></circle></g></svg><svg class="he-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="9" width="42" height="30" rx="4" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"/><rect x="8" y="14" width="3" height="20" rx="1.5" fill="#3b82f6"/><rect x="14" y="14" width="2" height="20" rx="1" fill="#93c5fd"/><rect x="19" y="14" width="4" height="20" rx="2" fill="#3b82f6"/><rect x="26" y="14" width="2" height="20" rx="1" fill="#93c5fd"/><rect x="31" y="14" width="3" height="20" rx="1.5" fill="#3b82f6"/><rect x="37" y="14" width="3" height="20" rx="1.5" fill="#bfdbfe"/><circle cx="37" cy="37" r="10" fill="#fff1f2" stroke="#fecdd3" stroke-width="1.5"/><line x1="33" y1="33" x2="41" y2="41" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/><line x1="41" y1="33" x2="33" y2="41" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/></svg></div><div class="hist-empty-title" id="emptyHistTitle">'+L.emptyTitle+'</div></div>';return;}
   var h='';historyList.forEach(function(it,i){h+='<div class="hist-item" style="animation-delay:'+(i*.04)+'s"><span class="hist-badge '+(it.okng==='OK'?'ok':'ng')+'">'+it.okng+'</span><div class="hist-meta"><div class="hist-date">'+it.date+'</div><div class="hist-code">'+it.barcode+'</div></div><button onclick="viewHistory('+i+')" class="hist-view">'+L.view+'</button></div>';});
   el.innerHTML=h;
 }

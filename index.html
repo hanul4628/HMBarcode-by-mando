@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#002C5F">
 <title>HKMC 2D Barcode Reader</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -1078,295 +1079,53 @@ function renderTable(RD,L){
 }
 
 
-/* ── 결과 이미지 저장 ── */
+/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) ── */
 function saveResultImage(){
-  var L = LANG[currentLang];
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
 
-  var W = 750, pad = 20;
-  var font = "'Pretendard Variable','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
-  var monoFont = "'JetBrains Mono','Courier New',monospace";
+  // 캡처할 대상 영역 (바코드 패널 + 결과 패널)
+  var barcodePanel = document.getElementById('barcodePanel');
+  var resultPanel  = document.getElementById('resultPanel');
+  if(!barcodePanel || !resultPanel) return;
 
-  // 색상 (실제 앱과 동일)
-  var C = {
-    bg:       '#f9fafb',
-    surface:  '#ffffff',
-    border:   '#e5e7eb',
-    ink:      '#111827',
-    ink2:     '#374151',
-    ink3:     '#6b7280',
-    blue:     '#1e40af',
-    blueLt:   '#dbeafe',
-    blueTx:   '#1d4ed8',
-    green:    '#10b981',
-    greenBg:  '#d1fae5',
-    red:      '#ef4444',
-    redBg:    '#fee2e2',
-    amber:    '#d97706',
-    amberBg:  '#fef9c3',
-    thead:    '#f3f4f6'
-  };
+  // 저장 버튼 일시 비활성화
+  var btn = document.getElementById('saveImgBtn');
+  if(btn){ btn.disabled = true; btn.style.opacity = '0.6'; }
 
-  var rawText = (analyzer.getRawBarcode ? analyzer.getRawBarcode() : '').replace(/<[^>]*>/g,'');
-  var rows = buildRows(RD, L);
+  // 두 패널을 임시 컨테이너로 감싸서 캡처
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = [
+    'position:fixed', 'top:-99999px', 'left:0',
+    'width:' + Math.min(window.innerWidth, 430) + 'px',
+    'background:#f9fafb',
+    'padding:16px',
+    'box-sizing:border-box',
+    'font-family:Pretendard Variable,Pretendard,-apple-system,BlinkMacSystemFont,system-ui,Roboto,Helvetica Neue,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif'
+  ].join(';');
 
-  var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d', {alpha: false});
+  // 두 패널 클론
+  var clone1 = barcodePanel.cloneNode(true);
+  var clone2 = resultPanel.cloneNode(true);
+  // 탭 섹션이 숨겨져 있으면 클론에서도 숨김
+  var origTab = document.getElementById('tabSection');
+  var cloneTab = clone1.querySelector('#tabSection');
+  if(origTab && cloneTab) cloneTab.style.display = origTab.style.display;
 
-  document.fonts.ready.then(function(){
-    // 높이 계산
-    var secLabelH = 32;
-    var panelHeadH = 62;
-    var rawLineH = 22, rawPad = 20;
-    var rawLines = rawText ? Math.ceil(rawText.length / 42) : 1;
-    var rawBoxH = rawLines * rawLineH + rawPad * 2;
-    var rowH = 46;
-    var thH = 38;
-    var tableBodyH = rows.length * rowH;
-    var totalH = pad
-      + secLabelH + 8           // 섹션 라벨
-      + panelHeadH               // 패널 헤더 (바코드 내용)
-      + rawBoxH                  // raw 텍스트 박스
-      + 16                       // gap
-      + secLabelH + 8            // 섹션 라벨
-      + panelHeadH               // 패널 헤더 (분석 결과)
-      + thH + tableBodyH         // 테이블
-      + pad;
+  wrapper.appendChild(clone1);
+  wrapper.appendChild(clone2);
+  document.body.appendChild(wrapper);
 
-    canvas.width = W;
-    canvas.height = totalH;
-    ctx.textBaseline = 'middle';
+  html2canvas(wrapper, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#f9fafb',
+    logging: false,
+    removeContainer: false
+  }).then(function(canvas){
+    document.body.removeChild(wrapper);
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
 
-    // 전체 배경 (alpha:false 이므로 완전 불투명)
-    ctx.fillStyle = C.bg;
-    ctx.fillRect(0, 0, W, totalH);
-    ctx.fillRect(0, 0, W, totalH); // 한 번 더 확실하게
-
-    var y = pad;
-
-    /* ── 섹션 라벨: 바코드 내용 ── */
-    ctx.font = 'bold 13px ' + font;
-    ctx.fillStyle = C.ink3;
-    ctx.textAlign = 'left';
-    ctx.fillText((L.secBarcodeData || '바코드 데이터'), pad + 2, y + 11);
-    // 라인
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1.5;
-    var labelW = ctx.measureText(L.secBarcodeData || '바코드 데이터').width + 12;
-    ctx.beginPath();
-    ctx.moveTo(pad + labelW, y + 10);
-    ctx.lineTo(W - pad, y + 10);
-    ctx.stroke();
-    y += secLabelH + 8;
-
-    /* ── 바코드 내용 패널 카드 ── */
-    // 카드 배경
-    ctx.fillStyle = C.surface;
-    roundRect(ctx, pad, y, W - pad*2, panelHeadH + rawBoxH, 14);
-    ctx.fill();
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // 패널 헤더 영역
-    ctx.fillStyle = C.surface;
-    roundRect(ctx, pad, y, W - pad*2, panelHeadH, 14, 14, 0, 0);
-    ctx.fill();
-    // 하단 구분선
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(pad, y + panelHeadH);
-    ctx.lineTo(W - pad, y + panelHeadH);
-    ctx.stroke();
-
-    // 아이콘 박스 (파란 배경)
-    var iconX = pad + 16, iconY = y + 12;
-    ctx.fillStyle = '#eff6ff';
-    roundRect(ctx, iconX, iconY, 38, 38, 10);
-    ctx.fill();
-    // 바코드 미니 아이콘 (막대)
-    ctx.fillStyle = C.blueTx;
-    var bars = [{x:7,w:3},{x:12,w:2},{x:16,w:4},{x:22,w:2},{x:26,w:3}];
-    bars.forEach(function(b){
-      ctx.fillRect(iconX+b.x, iconY+8, b.w, 22);
-    });
-
-    // 타이틀
-    ctx.font = 'bold 16px ' + font;
-    ctx.fillStyle = C.ink;
-    ctx.textAlign = 'left';
-    ctx.fillText((L.barcodeContent || '바코드 내용'), iconX + 48, y + 24);
-    ctx.font = '13px ' + font;
-    ctx.fillStyle = C.ink3;
-    ctx.fillText('Raw data', iconX + 48, y + 44);
-
-    // Raw 텍스트
-    y += panelHeadH;
-    ctx.font = 'bold 14px ' + monoFont;
-    ctx.fillStyle = C.amber;
-    var chunkSize = 42;
-    var lineY = y + rawPad;
-    for(var i = 0; i < rawText.length; i += chunkSize){
-      ctx.fillText(rawText.slice(i, i + chunkSize), pad + 16, lineY + rawLineH/2);
-      lineY += rawLineH;
-    }
-    if(!rawText){
-      ctx.fillStyle = C.ink3;
-      ctx.font = '14px ' + font;
-      ctx.fillText('-', pad + 16, y + rawBoxH/2);
-    }
-    y += rawBoxH + 16;
-
-    /* ── 섹션 라벨: 분석 상세 ── */
-    ctx.font = 'bold 13px ' + font;
-    ctx.fillStyle = C.ink3;
-    ctx.textAlign = 'left';
-    ctx.fillText((L.secAnalysis || '분석 상세'), pad + 2, y + 11);
-    var labelW2 = ctx.measureText(L.secAnalysis || '분석 상세').width + 12;
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(pad + labelW2, y + 10);
-    ctx.lineTo(W - pad, y + 10);
-    ctx.stroke();
-    y += secLabelH + 8;
-
-    /* ── 분석 결과 패널 카드 ── */
-    var tableTotalH = panelHeadH + thH + tableBodyH;
-    ctx.fillStyle = C.surface;
-    roundRect(ctx, pad, y, W - pad*2, tableTotalH, 14);
-    ctx.fill();
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // 패널 헤더
-    ctx.strokeStyle = C.border;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(pad, y + panelHeadH);
-    ctx.lineTo(W - pad, y + panelHeadH);
-    ctx.stroke();
-
-    // 아이콘 박스 (초록 배경)
-    var iconX2 = pad + 16, iconY2 = y + 12;
-    ctx.fillStyle = '#ecfdf5';
-    roundRect(ctx, iconX2, iconY2, 38, 38, 10);
-    ctx.fill();
-    // 체크 아이콘
-    ctx.strokeStyle = C.green;
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(iconX2+10, iconY2+19);
-    ctx.lineTo(iconX2+17, iconY2+26);
-    ctx.lineTo(iconX2+28, iconY2+13);
-    ctx.stroke();
-
-    ctx.font = 'bold 16px ' + font;
-    ctx.fillStyle = C.ink;
-    ctx.textAlign = 'left';
-    ctx.fillText((L.result || '분석 결과'), iconX2 + 48, y + 24);
-    ctx.font = '13px ' + font;
-    ctx.fillStyle = C.ink3;
-    ctx.fillText((L.standard || 'H/KMC 부품 2D 바코드 표준'), iconX2 + 48, y + 44);
-    y += panelHeadH;
-
-    /* ── 테이블 ── */
-    // 컬럼 너비 (실제 앱 비율 맞춤)
-    var col1W = 200, col2W = 90, col3W = W - pad*2 - col1W - col2W;
-    var tX = pad;
-
-    // 헤더 행
-    ctx.fillStyle = C.thead;
-    ctx.fillRect(tX, y, W - pad*2, thH);
-    ctx.font = 'bold 14px ' + font;
-    ctx.fillStyle = C.ink2;
-    ctx.textAlign = 'center';
-    ctx.fillText(L.item || '구분',    tX + col1W/2,           y + thH/2);
-    ctx.fillText(L.result || '결과',  tX + col1W + col2W/2,   y + thH/2);
-    ctx.textAlign = 'left';
-    ctx.fillText(L.data || '데이터',  tX + col1W + col2W + 12, y + thH/2);
-    y += thH;
-
-    // 데이터 행
-    rows.forEach(function(row, i){
-      var bg = i % 2 === 0 ? C.surface : '#f9fafb';
-      ctx.fillStyle = bg;
-      ctx.fillRect(tX, y, W - pad*2, rowH);
-
-      // 구분 텍스트
-      ctx.font = '13.5px ' + font;
-      ctx.fillStyle = C.ink2;
-      ctx.textAlign = 'center';
-      // 줄바꿈 처리
-      var itemLines = row[0].split('/');
-      if(itemLines.length > 1){
-        ctx.font = 'bold 12px ' + font;
-        ctx.fillText(itemLines[0].trim(), tX + col1W/2, y + rowH/2 - 8);
-        ctx.font = '12px ' + font;
-        ctx.fillStyle = C.ink3;
-        ctx.fillText(itemLines[1].trim(), tX + col1W/2, y + rowH/2 + 8);
-      } else {
-        ctx.font = 'bold 13px ' + font;
-        ctx.fillStyle = C.ink;
-        ctx.fillText(row[0], tX + col1W/2, y + rowH/2);
-      }
-
-      // OK / NG / - 뱃지 (실제 앱과 동일: 초록/빨강 pill)
-      var badgeX = tX + col1W + (col2W - 52)/2;
-      var badgeY = y + (rowH - 24)/2;
-      if(row[1] === 'OK'){
-        ctx.fillStyle = C.greenBg;
-        roundRect(ctx, badgeX, badgeY, 52, 24, 999);
-        ctx.fill();
-        ctx.font = 'bold 12px ' + font;
-        ctx.fillStyle = C.green;
-        ctx.textAlign = 'center';
-        ctx.fillText('OK', badgeX + 26, badgeY + 12);
-      } else if(row[1] === 'NG'){
-        ctx.fillStyle = C.redBg;
-        roundRect(ctx, badgeX, badgeY, 52, 24, 999);
-        ctx.fill();
-        ctx.font = 'bold 12px ' + font;
-        ctx.fillStyle = C.red;
-        ctx.textAlign = 'center';
-        ctx.fillText('NG', badgeX + 26, badgeY + 12);
-      } else {
-        ctx.font = '14px ' + font;
-        ctx.fillStyle = C.ink3;
-        ctx.textAlign = 'center';
-        ctx.fillText('-', tX + col1W + col2W/2, y + rowH/2);
-      }
-
-      // 데이터 값
-      if(row[2]){
-        ctx.font = 'bold 14px ' + monoFont;
-        ctx.fillStyle = C.ink;
-        ctx.textAlign = 'left';
-        ctx.fillText(row[2], tX + col1W + col2W + 12, y + rowH/2);
-      }
-
-      // 구분선
-      ctx.strokeStyle = C.border;
-      ctx.lineWidth = 0.8;
-      ctx.beginPath();
-      ctx.moveTo(tX, y + rowH);
-      ctx.lineTo(tX + W - pad*2, y + rowH);
-      ctx.stroke();
-      // 세로 구분선
-      ctx.beginPath();
-      ctx.moveTo(tX + col1W, y); ctx.lineTo(tX + col1W, y + rowH); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(tX + col1W + col2W, y); ctx.lineTo(tX + col1W + col2W, y + rowH); ctx.stroke();
-
-      y += rowH;
-    });
-
-    // 다운로드
     var now = new Date();
     var ts = now.getFullYear().toString().slice(2)
       + String(now.getMonth()+1).padStart(2,'0')
@@ -1377,6 +1136,11 @@ function saveResultImage(){
     link.download = 'HKMC_' + ts + '.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
+  }).catch(function(err){
+    document.body.removeChild(wrapper);
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+    console.error('html2canvas error:', err);
+    alert('이미지 저장에 실패했습니다.');
   });
 }
 

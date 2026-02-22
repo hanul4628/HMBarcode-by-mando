@@ -1282,13 +1282,20 @@ function closeScanner(){
   document.getElementById('scanOverlay').classList.remove('open');
   if(html5QrCode && html5QrCode.isScanning){
     isCameraTransitioning = true;
-    return html5QrCode.stop().then(function(){
-      html5QrCode.clear();
+    var instance = html5QrCode;
+    html5QrCode = null; // 먼저 null로 초기화하여 재진입 방지
+    return instance.stop().then(function(){
+      instance.clear();
     }).catch(function(err){
       console.error('Camera stop error:', err);
     }).finally(function(){
       isCameraTransitioning = false;
     });
+  }
+  // 스캔 중이 아니어도 인스턴스 초기화 (비정상 상태 방지)
+  if(html5QrCode){
+    try{ html5QrCode.clear(); }catch(e){}
+    html5QrCode = null;
   }
   return Promise.resolve();
 }

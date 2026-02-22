@@ -1080,7 +1080,7 @@ function renderTable(RD,L){
 }
 
 
-/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) 최종본 ── */
+/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) ── */
 function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
@@ -1094,17 +1094,16 @@ function saveResultImage(){
 
   var capWidth = Math.min(window.innerWidth, 430);
 
-  // 실제 DOM에서는 기존 화면에 간섭하지 않도록 화면 밖으로 배치
+  // 1. 오프스크린(-9999px) 배치를 폐기하고 z-index를 통해 레이아웃 엔진이 정상 크기를 계산하도록 유도
   var wrapper = document.createElement('div');
-  wrapper.id = 'capture-wrapper';
-  wrapper.style.cssText = 'position:absolute; top:0; left:-9999px; width:'+capWidth+'px; background:#f9fafb; padding:16px; box-sizing:border-box;';
+  wrapper.style.cssText = 'position:absolute; top:0; left:0; width:'+capWidth+'px; background:#f9fafb; padding:16px; box-sizing:border-box; z-index:-9999; pointer-events:none;';
 
   var clone1 = barcodePanel.cloneNode(true);
   var clone2 = resultPanel.cloneNode(true);
 
-  // 복제된 패널의 가시성 강제 활성화 (원본의 인라인 스타일 복제 방어)
-  clone1.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; margin-bottom:16px;';
-  clone2.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important;';
+  // 2. 복제된 엘리먼트의 애니메이션 속성을 인라인으로 1차 강제 초기화
+  clone1.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; margin-bottom:16px; animation:none !important; transform:none !important;';
+  clone2.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; animation:none !important; transform:none !important;';
 
   // 탭 상태 유지
   var origTab = document.getElementById('tabSection');
@@ -1117,23 +1116,21 @@ function saveResultImage(){
   wrapper.appendChild(clone2);
   document.body.appendChild(wrapper);
 
+  // 3. 캡처 실행
   html2canvas(wrapper, {
     scale: 2,
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#f9fafb',
     logging: false,
-    scrollX: 0,             // 스크롤 오차 방지
-    scrollY: 0,             // 스크롤 오차 방지
+    x: 0,
+    y: 0,
+    scrollX: 0,
+    scrollY: 0,
     width: capWidth,
     windowWidth: capWidth,
     onclone: function(clonedDoc){
-      // 1. 캡처 대상 가상 DOM에서 래퍼 위치를 화면 내부로 이동시켜 렌더링 유도
-      var clonedWrapper = clonedDoc.getElementById('capture-wrapper');
-      if(clonedWrapper) {
-        clonedWrapper.style.left = '0px';
-      }
-      // 2. 캡처 환경 내의 모든 애니메이션 및 투명도 전환 속성 강제 무효화
+      // 4. 가상 DOM 트리의 모든 하위 요소 애니메이션, 투명도 전환 속성 영구 제거
       var style = clonedDoc.createElement('style');
       style.innerHTML = '* { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; }';
       clonedDoc.head.appendChild(style);

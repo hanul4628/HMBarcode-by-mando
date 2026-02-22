@@ -1080,7 +1080,7 @@ function renderTable(RD,L){
 }
 
 
-/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) ── */
+/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) 최종본 ── */
 function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
@@ -1090,22 +1090,18 @@ function saveResultImage(){
   if(!barcodePanel || !resultPanel) return;
 
   var btn = document.getElementById('saveImgBtn');
-  if(btn){ btn.disabled = true; btn.style.opacity = '0.6'; }
+  if(btn){ btn.disabled = true; btn.style.setProperty('opacity', '0.6'); }
 
   var capWidth = Math.min(window.innerWidth, 430);
 
-  // 1. 오프스크린(-9999px) 배치를 폐기하고 z-index를 통해 레이아웃 엔진이 정상 크기를 계산하도록 유도
+  // 화면 내(0,0)에 배치하되 z-index로 실제 화면 뒤에 숨김
   var wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:absolute; top:0; left:0; width:'+capWidth+'px; background:#f9fafb; padding:16px; box-sizing:border-box; z-index:-9999; pointer-events:none;';
 
   var clone1 = barcodePanel.cloneNode(true);
   var clone2 = resultPanel.cloneNode(true);
 
-  // 2. 복제된 엘리먼트의 애니메이션 속성을 인라인으로 1차 강제 초기화
-  clone1.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; margin-bottom:16px; animation:none !important; transform:none !important;';
-  clone2.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; animation:none !important; transform:none !important;';
-
-  // 탭 상태 유지
+  // 탭 상태 복사
   var origTab = document.getElementById('tabSection');
   var cloneTab = clone1.querySelector('#tabSection');
   if(origTab && cloneTab){
@@ -1114,30 +1110,36 @@ function saveResultImage(){
 
   wrapper.appendChild(clone1);
   wrapper.appendChild(clone2);
+
+  // DOM 트리에 삽입하기 전, 모든 하위 요소의 애니메이션 및 투명도를 강제로 덮어씀
+  var allEls = wrapper.querySelectorAll('*');
+  for(var i=0; i<allEls.length; i++){
+    allEls[i].style.setProperty('animation', 'none', 'important');
+    allEls[i].style.setProperty('transition', 'none', 'important');
+    allEls[i].style.setProperty('opacity', '1', 'important');
+    allEls[i].style.setProperty('transform', 'none', 'important');
+    allEls[i].style.setProperty('visibility', 'visible', 'important');
+  }
+
+  // 최상위 패널의 가시성 보장
+  clone1.style.setProperty('display', 'block', 'important');
+  clone1.style.setProperty('margin-bottom', '16px', 'important');
+  clone2.style.setProperty('display', 'block', 'important');
+
+  // 변경된 wrapper를 본문에 추가 (애니메이션 없이 opacity 1로 즉각 렌더링됨)
   document.body.appendChild(wrapper);
 
-  // 3. 캡처 실행
   html2canvas(wrapper, {
     scale: 2,
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#f9fafb',
     logging: false,
-    x: 0,
-    y: 0,
-    scrollX: 0,
-    scrollY: 0,
     width: capWidth,
-    windowWidth: capWidth,
-    onclone: function(clonedDoc){
-      // 4. 가상 DOM 트리의 모든 하위 요소 애니메이션, 투명도 전환 속성 영구 제거
-      var style = clonedDoc.createElement('style');
-      style.innerHTML = '* { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; }';
-      clonedDoc.head.appendChild(style);
-    }
+    windowWidth: capWidth
   }).then(function(canvas){
     if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+    if(btn){ btn.disabled = false; btn.style.removeProperty('opacity'); }
     
     var now = new Date();
     var ts = now.getFullYear().toString().slice(2)
@@ -1154,12 +1156,10 @@ function saveResultImage(){
     document.body.removeChild(link);
   }).catch(function(err){
     if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
-    console.error('html2canvas error:', err);
+    if(btn){ btn.disabled = false; btn.style.removeProperty('opacity'); }
     alert('이미지 저장에 실패했습니다.\n' + err);
   });
 }
-
   // 충분한 대기 후 캡처
   setTimeout(function(){
     requestAnimationFrame(function(){

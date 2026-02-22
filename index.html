@@ -935,7 +935,6 @@ function setLang(lang){
     secResult:'result',
     secStd:'standard',
     navLang:'lang',
-    navHist:'history',
     histPageTitle:'histTitle',
     histClear:'clearAll',
     histClose:'close',
@@ -1072,7 +1071,7 @@ function renderTable(RD,L){
   var r30=gR('30'),r31=gR('31');
   if(f['30']&&f['31']){h+='<tr><td rowspan="2" class="td-head">'+L.additional+'</td><td class="td-head">'+L.special+'</td><td class="td-center">'+(r30.r?bH(r30.r):'-')+'</td><td>'+dH(r30.d)+'</td></tr><tr><td class="td-head">'+L.initial+'</td><td class="td-center">'+(r31.r?bH(r31.r):'-')+'</td><td>'+dH(r31.d)+'</td></tr>';}
   else if(f['30']){h+='<tr><td class="td-head">'+L.additional+'</td><td class="td-head">'+L.special+'</td><td class="td-center">'+(r30.r?bH(r30.r):'-')+'</td><td>'+dH(r30.d)+'</td></tr>';}
-  else{h+='<tr><td class="td-head">'+L.additional+'</td><td class="td-head">'+L.initial+'</td><td class="td-center">'+(r31.r?bH(r31.r):'-')+'</td><td>'+dH(r31.d)+'</td></tr>';}
+  else if(f['31']){h+='<tr><td class="td-head">'+L.additional+'</td><td class="td-head">'+L.initial+'</td><td class="td-center">'+(r31.r?bH(r31.r):'-')+'</td><td>'+dH(r31.d)+'</td></tr>';}
   var r40=gR('40');h+='<tr><td class="td-head">'+L.etc+'</td><td class="td-head">'+L.supplierArea+'</td><td class="td-center">'+(r40.r?bH(r40.r):'-')+'</td><td>'+dH(r40.d)+'</td></tr>';
   var rt=gR('50');h+='<tr><td colspan="2" class="td-head">'+L.trailer+'</td><td class="td-center">'+(rt.r?bH(rt.r):'-')+'</td><td>'+dH(rt.d)+'</td></tr>';
   h+='</tbody>';document.getElementById('resultTable').innerHTML=h;
@@ -1199,7 +1198,7 @@ function viewHistory(i){
   processBarcode(historyList[i].barcode, true);
 }
 
-function clearHistory(){if(confirm(currentLang==='ko'?'전체 이력을 삭제하시겠습니까?':'Clear all history?')){historyList=[];var dot=document.getElementById('histDot');if(dot)dot.style.display='none';renderHistory();}}
+function clearHistory(){var confirmMsg=currentLang==='ko'?'전체 이력을 삭제하시겠습니까?':currentLang==='es'?'¿Borrar todo el historial?':'Clear all history?';if(confirm(confirmMsg)){historyList=[];var dot=document.getElementById('histDot');if(dot)dot.style.display='none';renderHistory();}}
 
 /* ── Scanner ── */
 // 스캐너 시작: 이미 전환 중이거나 스캔 중이면 무시

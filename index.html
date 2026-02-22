@@ -1080,7 +1080,7 @@ function renderTable(RD,L){
 }
 
 
-/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) 완벽 검증본 ── */
+/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) ── */
 function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
@@ -1094,14 +1094,14 @@ function saveResultImage(){
 
   var capWidth = Math.min(window.innerWidth, 430);
 
-  // 1. 화면 내 배치 및 숨김 처리 (오프스크린 배치 시 발생하는 크기 계산 오류 방지)
   var wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:absolute; top:0; left:0; width:'+capWidth+'px; background:#f9fafb; padding:16px; box-sizing:border-box; z-index:-9999; pointer-events:none;';
+  wrapper.style.cssText = 'position:fixed;top:0;left:-9999px;width:'+capWidth+'px;background:#f9fafb;padding:16px;box-sizing:border-box;z-index:99999;pointer-events:none;';
 
+  // 현재 패널들을 deep-clone
   var clone1 = barcodePanel.cloneNode(true);
   var clone2 = resultPanel.cloneNode(true);
 
-  // 탭 상태 복사
+  // tabSection 상태 복사
   var origTab = document.getElementById('tabSection');
   var cloneTab = clone1.querySelector('#tabSection');
   if(origTab && cloneTab){
@@ -1111,54 +1111,62 @@ function saveResultImage(){
   wrapper.appendChild(clone1);
   wrapper.appendChild(clone2);
 
-  // 2. 최상위 클론 및 내부의 모든 엘리먼트 배열화
-  var elementsToProcess = [clone1, clone2];
-  var descendants = wrapper.querySelectorAll('*');
-  for(var j=0; j<descendants.length; j++){
-    elementsToProcess.push(descendants[j]);
+  // ★ 핵심 수정: 모든 자손 요소의 애니메이션 제거, opacity/visibility 강제
+  var allEls = wrapper.querySelectorAll('*');
+  for(var i=0; i<allEls.length; i++){
+    allEls[i].style.animation = 'none';
+    allEls[i].style.transition = 'none';
+    allEls[i].style.opacity = '1';
+    allEls[i].style.visibility = 'visible';
+    allEls[i].style.transform = 'none';
   }
-
-  // 3. 빈 화면 원인(애니메이션에 의한 opacity 0) 원천 차단
-  for(var i=0; i<elementsToProcess.length; i++){
-    var el = elementsToProcess[i];
-    if (el && el.style) {
-      el.style.setProperty('animation', 'none', 'important');
-      el.style.setProperty('transition', 'none', 'important');
-      el.style.setProperty('transform', 'none', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-    }
-  }
-
-  // 레이아웃 가시성 보장
-  clone1.style.setProperty('display', 'block', 'important');
-  clone1.style.setProperty('margin-bottom', '16px', 'important');
-  clone2.style.setProperty('display', 'block', 'important');
+  // wrapper 자체 + 클론 패널도 강제 표시
+  clone1.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;animation:none !important;';
+  clone2.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;animation:none !important;';
 
   document.body.appendChild(wrapper);
 
-  // 4. 브라우저 렌더링 엔진이 강제 주입된 스타일을 완전히 계산하도록 짧은 지연시간 부여
-  setTimeout(function() {
+  // 캡처 실행
+  var doCapture = function(){
     html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#f9fafb',
       logging: false,
+      scrollX: 0,
+      scrollY: 0,
       width: capWidth,
       windowWidth: capWidth,
-      scrollX: 0,
-      scrollY: 0
+      onclone: function(clonedDoc){
+        // clonedDoc 내에서도 모든 애니메이션/투명도를 강제 제거
+        var els = clonedDoc.querySelectorAll('*');
+        for(var j=0; j<els.length; j++){
+          els[j].style.animation = 'none';
+          els[j].style.transition = 'none';
+          els[j].style.opacity = '1';
+          els[j].style.visibility = 'visible';
+          els[j].style.transform = 'none';
+        }
+        // offscreen wrapper를 화면 안으로 이동
+        var offscreen = clonedDoc.querySelectorAll('body > div');
+        for(var k=0; k<offscreen.length; k++){
+          if(offscreen[k].style.left === '-9999px'){
+            offscreen[k].style.position = 'relative';
+            offscreen[k].style.left = '0';
+            offscreen[k].style.top = '0';
+          }
+        }
+      }
     }).then(function(canvas){
       if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
       if(btn){ btn.disabled = false; btn.style.opacity = ''; }
-      
       var now = new Date();
       var ts = now.getFullYear().toString().slice(2)
         + String(now.getMonth()+1).padStart(2,'0')
         + String(now.getDate()).padStart(2,'0')
         + '_' + String(now.getHours()).padStart(2,'0')
         + String(now.getMinutes()).padStart(2,'0');
-        
       var link = document.createElement('a');
       link.download = 'HKMC_' + ts + '.png';
       link.href = canvas.toDataURL('image/png');
@@ -1168,12 +1176,11 @@ function saveResultImage(){
     }).catch(function(err){
       if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
       if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+      console.error('html2canvas error:', err);
       alert('이미지 저장에 실패했습니다.\n' + err);
     });
-  }, 150);
-}
+  };
 
-  
   // 충분한 대기 후 캡처
   setTimeout(function(){
     requestAnimationFrame(function(){

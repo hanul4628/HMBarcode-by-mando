@@ -1099,15 +1099,15 @@ function saveResultImage(){
 
   var wrapper = document.createElement('div');
   wrapper.style.cssText = [
-    'position:absolute',
+    'position:fixed',
     'top:0',
-    'left:0',
+    'left:-9999px',
     'width:' + capWidth + 'px',
     'background:#f9fafb',
     'padding:16px',
     'box-sizing:border-box',
-    'z-index:-9999',
-    'visibility:hidden',
+    'z-index:99999',
+    'overflow:visible',
     'pointer-events:none'
   ].join(';');
 
@@ -1141,11 +1141,18 @@ function saveResultImage(){
       scrollX: 0,
       scrollY: 0,
       width: capWidth,
-      onclone: function(clonedDoc){
+      windowWidth: capWidth,
+      onclone: function(clonedDoc, clonedEl){
+        // 클론된 wrapper를 화면 안으로 이동시켜 렌더링 보장
+        clonedEl.style.position = 'relative';
+        clonedEl.style.left = '0';
+        clonedEl.style.top = '0';
+        clonedEl.style.visibility = 'visible';
+
         // clonedDoc 내 모든 패널 display 보장
-        clonedDoc.querySelectorAll('.panel, .barcode-raw, #resultTable, .result-table').forEach(function(el){
-          el.style.display = el.style.display || '';
+        clonedDoc.querySelectorAll('.panel, .barcode-raw, #resultTable, .result-table, thead, tbody, tr, td, th').forEach(function(el){
           el.style.visibility = 'visible';
+          el.style.opacity = '1';
         });
         var p1 = clonedDoc.querySelector('[id="barcodePanel"]');
         var p2 = clonedDoc.querySelector('[id="resultPanel"]');
@@ -1175,12 +1182,14 @@ function saveResultImage(){
     });
   };
 
-  // 2 프레임 대기 후 캡처 (DOM 렌더링 + 폰트 적용 보장)
-  requestAnimationFrame(function(){
+  // 충분한 대기 후 캡처 (DOM 렌더링 + 폰트 적용 보장)
+  setTimeout(function(){
     requestAnimationFrame(function(){
-      doCapture();
+      requestAnimationFrame(function(){
+        doCapture();
+      });
     });
-  });
+  }, 100);
 }
 
 function roundRect(ctx, x, y, w, h, tl, tr, br, bl){

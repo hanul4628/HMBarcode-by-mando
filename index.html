@@ -1142,22 +1142,26 @@ function saveResultImage(){
       scrollY: 0,
       width: capWidth,
       windowWidth: capWidth,
-      onclone: function(clonedDoc, clonedEl){
-        // 클론된 wrapper를 화면 안으로 이동시켜 렌더링 보장
-        clonedEl.style.position = 'relative';
-        clonedEl.style.left = '0';
-        clonedEl.style.top = '0';
-        clonedEl.style.visibility = 'visible';
-
-        // clonedDoc 내 모든 패널 display 보장
-        clonedDoc.querySelectorAll('.panel, .barcode-raw, #resultTable, .result-table, thead, tbody, tr, td, th').forEach(function(el){
+      onclone: function(clonedDoc){
+        // clonedDoc 내 모든 요소의 visibility 보장
+        clonedDoc.querySelectorAll('.panel, .panel-head, .barcode-raw, #resultTable, .result-table, thead, tbody, tr, td, th, .tab-scroll, .tab-row, .tab-btn, .panel-chip, .badge-ok, .badge-ng, .td-data, .td-head, .td-center').forEach(function(el){
           el.style.visibility = 'visible';
           el.style.opacity = '1';
         });
+        // 바코드/결과 패널 강제 표시
         var p1 = clonedDoc.querySelector('[id="barcodePanel"]');
         var p2 = clonedDoc.querySelector('[id="resultPanel"]');
-        if(p1){ p1.style.display = 'block'; p1.style.visibility = 'visible'; }
-        if(p2){ p2.style.display = 'block'; p2.style.visibility = 'visible'; }
+        if(p1){ p1.style.display = 'block'; p1.style.visibility = 'visible'; p1.style.opacity = '1'; }
+        if(p2){ p2.style.display = 'block'; p2.style.visibility = 'visible'; p2.style.opacity = '1'; }
+        // 클론된 body 내 fixed/offscreen wrapper도 화면 안으로 이동
+        var allFixed = clonedDoc.querySelectorAll('body > div');
+        allFixed.forEach(function(el){
+          if(el.style.left === '-9999px'){
+            el.style.position = 'relative';
+            el.style.left = '0';
+            el.style.top = '0';
+          }
+        });
       }
     }).then(function(canvas){
       if(document.body.contains(wrapper)) document.body.removeChild(wrapper);

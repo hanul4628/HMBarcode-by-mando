@@ -1083,63 +1083,77 @@ function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
 
-  // 캡처할 대상 영역 (바코드 패널 + 결과 패널)
   var barcodePanel = document.getElementById('barcodePanel');
   var resultPanel  = document.getElementById('resultPanel');
   if(!barcodePanel || !resultPanel) return;
 
-  // 저장 버튼 일시 비활성화
   var btn = document.getElementById('saveImgBtn');
   if(btn){ btn.disabled = true; btn.style.opacity = '0.6'; }
 
-  // 두 패널을 임시 컨테이너로 감싸서 캡처
+  var capWidth = Math.min(window.innerWidth, 430);
   var wrapper = document.createElement('div');
   wrapper.style.cssText = [
-    'position:fixed', 'top:-99999px', 'left:0',
-    'width:' + Math.min(window.innerWidth, 430) + 'px',
+    'position:fixed',
+    'top:0',
+    'left:' + (-capWidth - 10) + 'px',
+    'width:' + capWidth + 'px',
     'background:#f9fafb',
     'padding:16px',
     'box-sizing:border-box',
+    'z-index:-1',
     'font-family:Pretendard Variable,Pretendard,-apple-system,BlinkMacSystemFont,system-ui,Roboto,Helvetica Neue,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif'
   ].join(';');
 
-  // 두 패널 클론
   var clone1 = barcodePanel.cloneNode(true);
   var clone2 = resultPanel.cloneNode(true);
-  // 탭 섹션이 숨겨져 있으면 클론에서도 숨김
+  clone1.style.display = '';
+  clone2.style.display = '';
+
   var origTab = document.getElementById('tabSection');
-  var cloneTab = clone1.querySelector('#tabSection');
+  var cloneTab = clone1.querySelector('[id="tabSection"]');
   if(origTab && cloneTab) cloneTab.style.display = origTab.style.display;
 
   wrapper.appendChild(clone1);
   wrapper.appendChild(clone2);
   document.body.appendChild(wrapper);
 
-  html2canvas(wrapper, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#f9fafb',
-    logging: false,
-    removeContainer: false
-  }).then(function(canvas){
-    document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
-
-    var now = new Date();
-    var ts = now.getFullYear().toString().slice(2)
-      + String(now.getMonth()+1).padStart(2,'0')
-      + String(now.getDate()).padStart(2,'0')
-      + '_' + String(now.getHours()).padStart(2,'0')
-      + String(now.getMinutes()).padStart(2,'0');
-    var link = document.createElement('a');
-    link.download = 'HKMC_' + ts + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  }).catch(function(err){
-    document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
-    console.error('html2canvas error:', err);
-    alert('이미지 저장에 실패했습니다.');
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      html2canvas(wrapper, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#f9fafb',
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: capWidth,
+        onclone: function(doc){
+          var p1 = doc.getElementById('barcodePanel');
+          var p2 = doc.getElementById('resultPanel');
+          if(p1) p1.style.display = '';
+          if(p2) p2.style.display = '';
+        }
+      }).then(function(canvas){
+        document.body.removeChild(wrapper);
+        if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+        var now = new Date();
+        var ts = now.getFullYear().toString().slice(2)
+          + String(now.getMonth()+1).padStart(2,'0')
+          + String(now.getDate()).padStart(2,'0')
+          + '_' + String(now.getHours()).padStart(2,'0')
+          + String(now.getMinutes()).padStart(2,'0');
+        var link = document.createElement('a');
+        link.download = 'HKMC_' + ts + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }).catch(function(err){
+        document.body.removeChild(wrapper);
+        if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+        console.error('html2canvas error:', err);
+        alert('이미지 저장에 실패했습니다.');
+      });
+    });
   });
 }
 

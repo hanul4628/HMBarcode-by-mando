@@ -1080,7 +1080,7 @@ function renderTable(RD,L){
 }
 
 
-/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) 최종본 ── */
+/* ── 결과 이미지 저장 (html2canvas 스크린샷 방식) 완벽 검증본 ── */
 function saveResultImage(){
   var RD = analyzer.getResultData();
   if(!RD || RD.length === 0) return;
@@ -1090,11 +1090,11 @@ function saveResultImage(){
   if(!barcodePanel || !resultPanel) return;
 
   var btn = document.getElementById('saveImgBtn');
-  if(btn){ btn.disabled = true; btn.style.setProperty('opacity', '0.6'); }
+  if(btn){ btn.disabled = true; btn.style.opacity = '0.6'; }
 
   var capWidth = Math.min(window.innerWidth, 430);
 
-  // 화면 내(0,0)에 배치하되 z-index로 실제 화면 뒤에 숨김
+  // 1. 화면 내 배치 및 숨김 처리 (오프스크린 배치 시 발생하는 크기 계산 오류 방지)
   var wrapper = document.createElement('div');
   wrapper.style.cssText = 'position:absolute; top:0; left:0; width:'+capWidth+'px; background:#f9fafb; padding:16px; box-sizing:border-box; z-index:-9999; pointer-events:none;';
 
@@ -1111,55 +1111,69 @@ function saveResultImage(){
   wrapper.appendChild(clone1);
   wrapper.appendChild(clone2);
 
-  // DOM 트리에 삽입하기 전, 모든 하위 요소의 애니메이션 및 투명도를 강제로 덮어씀
-  var allEls = wrapper.querySelectorAll('*');
-  for(var i=0; i<allEls.length; i++){
-    allEls[i].style.setProperty('animation', 'none', 'important');
-    allEls[i].style.setProperty('transition', 'none', 'important');
-    allEls[i].style.setProperty('opacity', '1', 'important');
-    allEls[i].style.setProperty('transform', 'none', 'important');
-    allEls[i].style.setProperty('visibility', 'visible', 'important');
+  // 2. 최상위 클론 및 내부의 모든 엘리먼트 배열화
+  var elementsToProcess = [clone1, clone2];
+  var descendants = wrapper.querySelectorAll('*');
+  for(var j=0; j<descendants.length; j++){
+    elementsToProcess.push(descendants[j]);
   }
 
-  // 최상위 패널의 가시성 보장
+  // 3. 빈 화면 원인(애니메이션에 의한 opacity 0) 원천 차단
+  for(var i=0; i<elementsToProcess.length; i++){
+    var el = elementsToProcess[i];
+    if (el && el.style) {
+      el.style.setProperty('animation', 'none', 'important');
+      el.style.setProperty('transition', 'none', 'important');
+      el.style.setProperty('transform', 'none', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+    }
+  }
+
+  // 레이아웃 가시성 보장
   clone1.style.setProperty('display', 'block', 'important');
   clone1.style.setProperty('margin-bottom', '16px', 'important');
   clone2.style.setProperty('display', 'block', 'important');
 
-  // 변경된 wrapper를 본문에 추가 (애니메이션 없이 opacity 1로 즉각 렌더링됨)
   document.body.appendChild(wrapper);
 
-  html2canvas(wrapper, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: '#f9fafb',
-    logging: false,
-    width: capWidth,
-    windowWidth: capWidth
-  }).then(function(canvas){
-    if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.removeProperty('opacity'); }
-    
-    var now = new Date();
-    var ts = now.getFullYear().toString().slice(2)
-      + String(now.getMonth()+1).padStart(2,'0')
-      + String(now.getDate()).padStart(2,'0')
-      + '_' + String(now.getHours()).padStart(2,'0')
-      + String(now.getMinutes()).padStart(2,'0');
+  // 4. 브라우저 렌더링 엔진이 강제 주입된 스타일을 완전히 계산하도록 짧은 지연시간 부여
+  setTimeout(function() {
+    html2canvas(wrapper, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#f9fafb',
+      logging: false,
+      width: capWidth,
+      windowWidth: capWidth,
+      scrollX: 0,
+      scrollY: 0
+    }).then(function(canvas){
+      if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
+      if(btn){ btn.disabled = false; btn.style.opacity = ''; }
       
-    var link = document.createElement('a');
-    link.download = 'HKMC_' + ts + '.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }).catch(function(err){
-    if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    if(btn){ btn.disabled = false; btn.style.removeProperty('opacity'); }
-    alert('이미지 저장에 실패했습니다.\n' + err);
-  });
+      var now = new Date();
+      var ts = now.getFullYear().toString().slice(2)
+        + String(now.getMonth()+1).padStart(2,'0')
+        + String(now.getDate()).padStart(2,'0')
+        + '_' + String(now.getHours()).padStart(2,'0')
+        + String(now.getMinutes()).padStart(2,'0');
+        
+      var link = document.createElement('a');
+      link.download = 'HKMC_' + ts + '.png';
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }).catch(function(err){
+      if(document.body.contains(wrapper)) document.body.removeChild(wrapper);
+      if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+      alert('이미지 저장에 실패했습니다.\n' + err);
+    });
+  }, 150);
 }
+
+  
   // 충분한 대기 후 캡처
   setTimeout(function(){
     requestAnimationFrame(function(){
